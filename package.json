@@ -9,7 +9,7 @@
       "velbus-switch": "node-red/velbus-switch.js"
     }
   },
-  "devDependencies": {
+  "dependencies": {
     "events": "^3.0.0",
     "serialport": "^7.1.0"
   }

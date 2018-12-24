@@ -25,6 +25,7 @@
 
 
 
+
 </script>
 
 <script type="text/x-red" data-help-name="velbus-switch">
@@ -83,15 +84,17 @@
 
 
 
+
 </script>
 
 <script type="text/javascript">
+
 	RED.nodes.registerType('velbus-switch', {
 		category: 'Velbus',
 		color: '#e1444e',
 		defaults: {
 			serial: {value: "", type: "velbus-config"},
-			channel: {value: "", required: true}
+			channel: {value: "", required: false}
 		},
 		inputs: 0,
 		outputs: 1,
@@ -117,56 +120,72 @@
 				let current = $('#node-input-channel').val();
 
 				let configNodeId = $('#node-input-serial').val();
-				velbusConfigNode = RED.nodes.getNode(configNodeId);
-				const port = velbusConfigNode.serial;
-				let velbus;
 
-				if (!port) {
-					RED.notify("Please select a Serial port first ...", "error")
+				// $.get(`velbus/get-config-velbus-port`)
+				// 		.done(result => {
+				// 			velbus = result
+				// 		});
+				//
+				//
+				// velbusConfigNode = RED.nodes.getNode(configNodeId);
+				// const port = velbusConfigNode.serial;
+				// let velbus;
+				//
+				// if (!port) {
+				// 	RED.notify("Please select a Serial port first ...", "error")
+				// 	return
+				// }
+				if (configNodeId === "_ADD_") {
+					RED.notify("Set and deploy the Serial Port first.", "error");
 					return
 				}
 
-				$.get(`velbus/get-velbus-modules/${port}`)
-						.done(result => {
-							velbus = result
+				$.get(`velbus/get-modules/${configNodeId}`)
+						.done(modules => {
+							modules = JSON.parse(modules);
+							if (modules) {
+								$('#node-input-channel').val(`Loading modules ...`);
+
+								console.info("modules", modules);
+
+								//Wait 4 secs to wait for all modules to return response
+								setTimeout(() => {
+
+									if (modules.length <= 0) {
+										RED.notify("No Velbus Modules found.", "error");
+										$('#node-input-channel').val(current);
+										return
+									}
+
+
+									$('#node-input-channel').replaceWith('<select id="node-input-channel" type="text" style="width: 100%"></select>');
+									$('#node-input-channel').append('<option selected="selected" value="null">Searching Velbus modules…</option>');
+
+									// RESET OPTIONS
+									$('#node-input-channel').empty();
+
+									// SET MODULES AS OPTIONS
+									modules.forEach(function (module) {
+										$('#node-input-channel').append(`<option value="${module.address}">${module.module} @ ${module.address}</option>`);
+									});
+
+									// $(document).on('change', '#node-input-channel', function () {
+									// 	let channel = $('#node-input-channel option:selected').text();
+									// 	if (channel.length > 0) {
+									// 		$('#node-input-name').val(channel);
+									// 	}
+									// });
+
+									// SELECT CURRENT VALUE
+									$('#node-input-channel').val(current);
+
+									velbus.close();
+
+								}, 400);
+							} else {
+								RED.notify("No Velbus modules found", "error");
+							}
 						});
-
-				$('#node-input-channel').val(`Scanning for Velbus modules at ${port} ...`);
-
-				//Wait 4 secs to wait for all modules to return response
-				setTimeout(() => {
-					let modules = velbus.modules;
-
-
-					if (modules.length <= 0) {
-						RED.notify("No Velbus Modules found.", "error");
-						$('#node-input-channel').val(current);
-						return
-					}
-
-
-					$('#node-input-channel').replaceWith('<select id="node-input-channel" type="text" style="width: 100%"></select>');
-					$('#node-input-channel').append('<option selected="selected" value="null">Searching Velbus modules…</option>');
-
-					// RESET OPTIONS
-					$('#node-input-channel').empty();
-
-					// SET MODULES AS OPTIONS
-					modules.forEach(function (module) {
-						$('#node-input-channel').append(`<option value="${module.address}">${module.module} @ ${module.address}</option>`);
-					});
-
-					// $(document).on('change', '#node-input-channel', function () {
-					// 	let channel = $('#node-input-channel option:selected').text();
-					// 	if (channel.length > 0) {
-					// 		$('#node-input-name').val(channel);
-					// 	}
-					// });
-
-					// SELECT CURRENT VALUE
-					$('#node-input-channel').val(current);
-
-				}, 4000);
 
 			}
 

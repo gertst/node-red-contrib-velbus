@@ -1,5 +1,3 @@
-let Velbus = require("../velbus/velbus");
-
 module.exports = function (RED) {
 	"use strict";
 
@@ -23,16 +21,14 @@ module.exports = function (RED) {
 		// });
 
 		velbusConfigNode.events.on('onSerialError', error => {
-			this.status({fill: "red", shape: "ring", text: error});
-			RED.notify(error, "error");
+			this.status({fill: "red", shape: "ring", text: error.message});
+			RED.notify(error.message, "error");
 		});
 
 		velbusConfigNode.events.on('onSerialPacket', packet => {
 
-			RED.getNode
-
 			if (packet.address !== config.channel) {
-				return
+				RED.notify("packet", "info");
 			}
 
 
@@ -60,10 +56,9 @@ module.exports = function (RED) {
 	// 	res.end();
 	// });
 
-	RED.httpAdmin.get(`/velbus/get-modules/:port`, function (req, res, next) {
-		let velbus = new Velbus(req.params.port);
-
-		res.end(velbus);
+	RED.httpAdmin.get(`/velbus/get-modules/:configNodeId`, function (req, res, next) {
+		let configNode = RED.nodes.getNode(req.params.configNodeId);
+		res.end(JSON.stringify(configNode.velbus.modules));
 	});
 
 	RED.nodes.registerType("velbus-switch", VelbusSwitch);

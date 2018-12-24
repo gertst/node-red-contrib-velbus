@@ -12,7 +12,7 @@ module.exports = function (RED) {
 		this.events = new events.EventEmitter();
 		this.serial = configNode.serial;
 
-		this.velbus = new Velbus(this);
+		this.velbus = new Velbus(configNode.serial, this);
 
 	}
 
