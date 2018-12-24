@@ -1,0 +1,192 @@
+<script type="text/x-red" data-template-name="velbus-switch">
+    <div class="form-row">
+        <label for="node-input-serial"><i class="fa fa-server"></i> Serial Port</label>
+        <input type="text" id="node-input-serial">
+    </div>
+
+	<div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-dot-circle-o"></i> Channel</label>
+        <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
+            <a id="node-input-scan" class="editor-button" style="position: absolute; left: 0px; top: 0px;">
+                <i class="fa fa-search"></i>
+            </a>
+            <div style="position: absolute; left: 40px; right: 0px;">
+                <input id="node-input-channel" type="text" style="width:100%">
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+</script>
+
+<script type="text/x-red" data-help-name="velbus-switch">
+    <p>Velbus Switch node to receive button events.</p>
+
+    <h3>Setup</h3>
+    <p>Select the preconfigured Hue Bridge and hit the search button to find all available Hue Switch devices. Type in the name manually or keep the default device name. Note that events will only sent on deploy (once) and if a button is pressed.</p>
+
+    <h3>Switch Events</h3>
+    <p>The event message that the Hue Switch sends contains the following data in the <b>msg.payload</b> object:</p>
+    <dl class="message-properties">
+        <dt>button<span class="property-type">int</span></dt>
+        <dd>Pressed button id</dd>
+
+        <dt>name<span class="property-type">string</span></dt>
+        <dd>Human readable pressed button name (On, Dim Up, Dim Down, Off)</dd>
+
+        <dt>action<span class="property-type">string</span></dt>
+        <dd>Human readable pressed button action (pressed, holded, short released, long released)</dd>
+
+        <dt>updated<span class="property-type">string</span></dt>
+        <dd>ISO 8601 date string of the last time when a button was pressed</dd>
+    </dl>
+
+    <h3>Additional Sensor Info</h3>
+    <p>Additional information about the device is going to be sent to the <b>msg.info</b> object:</p>
+    <dl class="message-properties">
+        <dt>id<span class="property-type">int</span></dt>
+        <dd>Numerical id of the sensor as registered on the bridge</dd>
+
+        <dt>uniqueId<span class="property-type">string</span></dt>
+        <dd>Unique Id of the sensor (typically hardware id)</dd>
+
+        <dt>name<span class="property-type">string</span></dt>
+        <dd>Name for the sensor</dd>
+
+        <dt>type<span class="property-type">string</span></dt>
+        <dd>Sensor type (e.g. Daylight, CLIPTemperature, ZGPSwitch)</dd>
+
+        <dt>softwareVersion<span class="property-type">float</span></dt>
+        <dd>Software version of the sensor</dd>
+
+        <dt>battery<span class="property-type">int</span></dt>
+        <dd>Current battery level of the Hue Switch in percent</dd>
+
+        <dt>model<span class="property-type">object</span></dt>
+        <dd>The model object of the sensor includes model specific information like the model.id, model.manufacturer, model.name and model.type</dd>
+    </dl>
+
+
+
+
+
+
+
+
+
+
+</script>
+
+<script type="text/javascript">
+	RED.nodes.registerType('velbus-switch', {
+		category: 'Velbus',
+		color: '#e1444e',
+		defaults: {
+			serial: {value: "", type: "velbus-config"},
+			channel: {value: "", required: true}
+		},
+		inputs: 0,
+		outputs: 1,
+		outputLabels: 'button pressed',
+		align: 'right',
+		icon: "",
+		paletteLabel: "Velbus Switch",
+		label: function () {
+			return `Velbus module! @ channel ${this.channel}`;
+		},
+
+
+		// oneditsave: function () {
+		// 	console.info("oneditsave switch");
+		// 	$.get('velbus/init-velbus-port');
+		// },
+
+		oneditprepare: () => {
+
+			//debugger;
+			function searchAndSelectModule() {
+
+				let current = $('#node-input-channel').val();
+
+				let configNodeId = $('#node-input-serial').val();
+				velbusConfigNode = RED.nodes.getNode(configNodeId);
+				const port = velbusConfigNode.serial;
+				let velbus;
+
+				if (!port) {
+					RED.notify("Please select a Serial port first ...", "error")
+					return
+				}
+
+				$.get(`velbus/get-velbus-modules/${port}`)
+						.done(result => {
+							velbus = result
+						});
+
+				$('#node-input-channel').val(`Scanning for Velbus modules at ${port} ...`);
+
+				//Wait 4 secs to wait for all modules to return response
+				setTimeout(() => {
+					let modules = velbus.modules;
+
+
+					if (modules.length <= 0) {
+						RED.notify("No Velbus Modules found.", "error");
+						$('#node-input-channel').val(current);
+						return
+					}
+
+
+					$('#node-input-channel').replaceWith('<select id="node-input-channel" type="text" style="width: 100%"></select>');
+					$('#node-input-channel').append('<option selected="selected" value="null">Searching Velbus modules…</option>');
+
+					// RESET OPTIONS
+					$('#node-input-channel').empty();
+
+					// SET MODULES AS OPTIONS
+					modules.forEach(function (module) {
+						$('#node-input-channel').append(`<option value="${module.address}">${module.module} @ ${module.address}</option>`);
+					});
+
+					// $(document).on('change', '#node-input-channel', function () {
+					// 	let channel = $('#node-input-channel option:selected').text();
+					// 	if (channel.length > 0) {
+					// 		$('#node-input-name').val(channel);
+					// 	}
+					// });
+
+					// SELECT CURRENT VALUE
+					$('#node-input-channel').val(current);
+
+				}, 4000);
+
+			}
+
+			function manualSwitchModule() {
+				let current = $('#node-input-channel').val();
+				$('#node-input-channel').replaceWith('<input type="text" id="node-input-channel" style="width: 100%"/>');
+				$('#node-input-channel').val(current);
+			}
+
+			$("#node-input-scan").click(() => {
+
+				if ($('#node-input-channel').prop("tagName") === "INPUT") {
+					searchAndSelectModule();
+				} else {
+					manualSwitchModule();
+				}
+
+			});
+		}
+
+
+	});
+</script>

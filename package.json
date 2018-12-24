@@ -1,0 +1,16 @@
+{
+  "name": "node-red-contrib-velbus",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {},
+  "node-red": {
+    "nodes": {
+      "velbus-config": "node-red/velbus-config.js",
+      "velbus-switch": "node-red/velbus-switch.js"
+    }
+  },
+  "devDependencies": {
+    "events": "^3.0.0",
+    "serialport": "^7.1.0"
+  }
+}
