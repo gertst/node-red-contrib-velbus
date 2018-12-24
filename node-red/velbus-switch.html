@@ -5,13 +5,13 @@
     </div>
 
 	<div class="form-row">
-        <label for="node-input-channel"><i class="fa fa-dot-circle-o"></i> Channel</label>
+        <label for="node-input-address"><i class="fa fa-dot-circle-o"></i> Address</label>
         <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
             <a id="node-input-scan" class="editor-button" style="position: absolute; left: 0px; top: 0px;">
                 <i class="fa fa-search"></i>
             </a>
             <div style="position: absolute; left: 40px; right: 0px;">
-                <input id="node-input-channel" type="text" style="width:100%">
+                <input id="node-input-address" type="text" style="width:100%">
             </div>
         </div>
     </div>
@@ -94,7 +94,7 @@
 		color: '#e1444e',
 		defaults: {
 			serial: {value: "", type: "velbus-config"},
-			channel: {value: "", required: false}
+			address: {value: "", required: false}
 		},
 		inputs: 0,
 		outputs: 1,
@@ -103,7 +103,7 @@
 		icon: "",
 		paletteLabel: "Velbus Switch",
 		label: function () {
-			return `Velbus module! @ channel ${this.channel}`;
+			return `Velbus module! @ address ${this.address}`;
 		},
 
 
@@ -117,7 +117,7 @@
 			//debugger;
 			function searchAndSelectModule() {
 
-				let current = $('#node-input-channel').val();
+				let current = $('#node-input-address').val();
 
 				let configNodeId = $('#node-input-serial').val();
 
@@ -144,7 +144,7 @@
 						.done(modules => {
 							modules = JSON.parse(modules);
 							if (modules) {
-								$('#node-input-channel').val(`Loading modules ...`);
+								$('#node-input-address').val(`Loading modules ...`);
 
 								console.info("modules", modules);
 
@@ -153,31 +153,24 @@
 
 									if (modules.length <= 0) {
 										RED.notify("No Velbus Modules found.", "error");
-										$('#node-input-channel').val(current);
+										$('#node-input-address').val(current);
 										return
 									}
 
 
-									$('#node-input-channel').replaceWith('<select id="node-input-channel" type="text" style="width: 100%"></select>');
-									$('#node-input-channel').append('<option selected="selected" value="null">Searching Velbus modules…</option>');
+									$('#node-input-address').replaceWith('<select id="node-input-address" type="text" style="width: 100%"></select>');
+									$('#node-input-address').append('<option selected="selected" value="null">Searching Velbus modules…</option>');
 
 									// RESET OPTIONS
-									$('#node-input-channel').empty();
+									$('#node-input-address').empty();
 
 									// SET MODULES AS OPTIONS
 									modules.forEach(function (module) {
-										$('#node-input-channel').append(`<option value="${module.address}">${module.module} @ ${module.address}</option>`);
+										$('#node-input-address').append(`<option value="${module.address}">${module.module} @ ${module.address}</option>`);
 									});
 
-									// $(document).on('change', '#node-input-channel', function () {
-									// 	let channel = $('#node-input-channel option:selected').text();
-									// 	if (channel.length > 0) {
-									// 		$('#node-input-name').val(channel);
-									// 	}
-									// });
-
 									// SELECT CURRENT VALUE
-									$('#node-input-channel').val(current);
+									$('#node-input-address').val(current);
 
 									velbus.close();
 
@@ -190,14 +183,14 @@
 			}
 
 			function manualSwitchModule() {
-				let current = $('#node-input-channel').val();
-				$('#node-input-channel').replaceWith('<input type="text" id="node-input-channel" style="width: 100%"/>');
-				$('#node-input-channel').val(current);
+				let current = $('#node-input-address').val();
+				$('#node-input-address').replaceWith('<input type="text" id="node-input-address" style="width: 100%"/>');
+				$('#node-input-address').val(current);
 			}
 
 			$("#node-input-scan").click(() => {
 
-				if ($('#node-input-channel').prop("tagName") === "INPUT") {
+				if ($('#node-input-address').prop("tagName") === "INPUT") {
 					searchAndSelectModule();
 				} else {
 					manualSwitchModule();

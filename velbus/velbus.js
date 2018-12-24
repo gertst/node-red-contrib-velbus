@@ -11,6 +11,7 @@ class Velbus {
 	 * to scan for modules.
 	 */
 	constructor(port, velbusConfigNode) {
+		global.velbus = this;
 		this.modules = [];
 
 		this.velbusConfigNode = velbusConfigNode;
@@ -40,13 +41,15 @@ class Velbus {
 		this.port.on('close', msg => {
 			console.warn('Velbus: Serial got closed :: ', msg);
 			if (this.velbusConfigNode) {
-				this.velbusConfigNode.events.emit("onSerialClosed", msg);
+				this.velbusConfigNode.events.emit("onSerialError", msg);
 			}
 		});
 
 		this.port.on('data', data => {
 			let packet = new Packet();
 			packet.setRawBytesAndPack(data);
+
+			console.info(`cmd ${packet.command} @ ${packet.address}`);
 
 			if (packet.command === constants.COMMAND_MODULE_TYPE) {
 				let moduleName = constants.moduleNames["module" + packet.dec2hex(packet.getDataByte(1))];

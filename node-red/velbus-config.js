@@ -12,8 +12,12 @@ module.exports = function (RED) {
 		this.events = new events.EventEmitter();
 		this.serial = configNode.serial;
 
-		this.velbus = new Velbus(configNode.serial, this);
-
+		//todo: find a better way to store globally!
+		if (!global.velbus) {
+			this.velbus = new Velbus(configNode.serial, this);
+		} else {
+			this.velbus = global.velbus;
+		}
 	}
 
 	RED.nodes.registerType("velbus-config", ConfigNode);

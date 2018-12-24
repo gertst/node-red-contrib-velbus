@@ -1,24 +1,18 @@
+let constants = require('../velbus/const');
+
 module.exports = function (RED) {
 	"use strict";
 
-	var velbusConfigNode = null;
+	let velbusConfigNode = null;
 
 	//runs on deploy or when node is already in flow
 	function VelbusSwitch(config) {
 
 		RED.nodes.createNode(this, config);
+
+		//this.address = parseInt(config.address);
+
 		velbusConfigNode = RED.nodes.getNode(config.serial);
-
-
-		// if (!velbusConfigNode || !velbusConfigNode.serial) {
-		// 	return
-		// }
-
-		// velbusConfigNode.events.on('onModuleFound', packet => {
-		// 	if (packet.address !== config.channel) {
-		// 		this.status({fill: "green", shape: "ring", text: "Module found"});
-		// 	}
-		// });
 
 		velbusConfigNode.events.on('onSerialError', error => {
 			this.status({fill: "red", shape: "ring", text: error.message});
@@ -27,20 +21,14 @@ module.exports = function (RED) {
 
 		velbusConfigNode.events.on('onSerialPacket', packet => {
 
-			if (packet.address !== config.channel) {
-				RED.notify("packet", "info");
+			if (packet.address === parseInt(config.address)) {
+				if (packet.command === constants.COMMAND_PUSH_BUTTON_STATUS) {
+					console.log(`pushed ${packet.getRawDataAsString()}`);
+					this.send({payload: "alert"});
+				}
 			}
 
-
-			// var message = {};
-			// message.payload = sensor;
-			//
-			// scope.send(message);
-			// scope.status({fill: "green", shape: "dot", text: config.channel});
-
 		});
-
-		// velbusConfigNode.velbus.openSerial();
 
 	}
 
