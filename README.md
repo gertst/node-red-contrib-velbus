@@ -12,8 +12,14 @@ First select the serial port: this should be automatically found.
 Then deploy to save and connect to Velbus.
 From then on you are able to scan for Velbus modules. 
 
+
 ## Status
 
-Alpha phase: loading modules.
+Alpha phase: loading modules, no real workflow yet!
 
-## Project setup
+
+## Todo
+
+- ☑ auto scan for Velbus serial port
+- ☐ show real names of found modules
+- ☐ auto-reconnect serial port

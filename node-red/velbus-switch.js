@@ -46,6 +46,10 @@ module.exports = function (RED) {
 
 	RED.httpAdmin.get(`/velbus/get-modules/:configNodeId`, function (req, res, next) {
 		let configNode = RED.nodes.getNode(req.params.configNodeId);
+		if (!configNode) {
+			RED.notify("Deploy this flow first, to have access to the Serial port.", "error");
+			return
+		}
 		res.end(JSON.stringify(configNode.velbus.modules));
 	});
 
