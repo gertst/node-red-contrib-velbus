@@ -34,13 +34,13 @@ let constants = {
 	MODULE_TYPE_VMBDMIR: 0x2F,
 
 	moduleNames: {
-		module01: "VMB8PB",
+		module01: "VMB8PD",
 		module02: "VMB1RY",
 		module05: "VMB6IN",
 		module07: "VMB1DM",
 		module08: "VMB4RY",
 		module0A: "VMB8IR",
-		module0B: "VMB4PB",
+		module0B: "VMB4PD",
 		module0F: "VMB1LED",
 		module10: "VMB4RYLD",
 		module11: "VMB4RYNO",
@@ -67,7 +67,16 @@ let constants = {
 		module2F: "VMBDMIR",
 	},
 
-// Velbus commands
+	modulesWithButtons: [
+		"VMB8PD", "VMB4PD",
+	],
+
+
+	//priority
+	PRIO_HI: 0xF8,
+	PRIO_LOW: 0xFB,
+
+	// Velbus commands
 	COMMAND_PUSH_BUTTON_STATUS: 0x00,
 	COMMAND_SWITCH_RELAY_OFF: 0x01,
 	COMMAND_SWITCH_RELAY_ON: 0x02,
@@ -77,6 +86,7 @@ let constants = {
 	COMMAND_SET_DIMVALUE: 0x07,
 	COMMAND_RESTORE_LAST_DIMVALUE: 0x11,
 	COMMAND_BLIND_POS: 0x1C,
+	COMMAND_GET_MODULE: 0x40,
 	COMMAND_SUBTYPE: 0xB0,
 	COMMAND_DIMMERCONTROLLER_STATUS: 0xB8,
 	COMMAND_BLIND_STATUS: 0xEC,

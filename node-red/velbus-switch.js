@@ -10,13 +10,13 @@ module.exports = function (RED) {
 
 		RED.nodes.createNode(this, config);
 
+		this.name = config.name;
 		//this.address = parseInt(config.address);
 
 		velbusConfigNode = RED.nodes.getNode(config.serial);
 
 		velbusConfigNode.events.on('onSerialError', error => {
 			this.status({fill: "red", shape: "ring", text: error.message});
-			RED.notify(error.message, "error");
 		});
 
 		velbusConfigNode.events.on('onSerialPacket', packet => {
@@ -24,7 +24,7 @@ module.exports = function (RED) {
 			if (packet.address === parseInt(config.address)) {
 				if (packet.command === constants.COMMAND_PUSH_BUTTON_STATUS) {
 					console.log(`pushed ${packet.getRawDataAsString()}`);
-					this.send({payload: "alert"});
+					this.send({payload: true});
 				}
 			}
 
@@ -47,10 +47,16 @@ module.exports = function (RED) {
 	RED.httpAdmin.get(`/velbus/get-modules/:configNodeId`, function (req, res, next) {
 		let configNode = RED.nodes.getNode(req.params.configNodeId);
 		if (!configNode) {
-			RED.notify("Deploy this flow first, to have access to the Serial port.", "error");
 			return
 		}
-		res.end(JSON.stringify(configNode.velbus.modules));
+
+		//filter only modules that have buttons
+		let modules = configNode.velbus.modules.filter(module => {
+			return constants.modulesWithButtons.includes(module.name)
+		});
+
+
+		res.end(JSON.stringify(modules));
 	});
 
 	RED.nodes.registerType("velbus-switch", VelbusSwitch);

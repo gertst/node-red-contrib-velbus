@@ -5,7 +5,7 @@
     </div>
 
 	<div class="form-row">
-        <label for="node-input-address"><i class="fa fa-dot-circle-o"></i> Address</label>
+        <label for="node-input-address"><i class="fa fa-envelope"></i> Address</label>
         <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
             <a id="node-input-scan" class="editor-button" style="position: absolute; left: 0px; top: 0px;">
                 <i class="fa fa-search"></i>
@@ -16,12 +16,32 @@
         </div>
     </div>
 
+     <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-dot-circle-o"></i> Channel</label>
+        <select id="node-input-address" type="text" style="width: 70%">
+	        <option value="1">Button 1</option>
+	        <option value="2">Button 2</option>
+	        <option value="3">Button 3</option>
+	        <option value="4">Button 4</option>
+	        <option value="5">Button 5</option>
+	        <option value="6">Button 6</option>
+	        <option value="7">Button 7</option>
+	        <option value="8">Button 8</option>
+        </select>
+    </div>
 
-
-
-
-
-
+	<div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
+            <a id="node-input-get-label" class="editor-button"
+                style="position: absolute; left: 0px; top: 0px;">
+                <i class="fa fa-search"></i>
+            </a>
+            <div style="position: absolute; left: 40px; right: 0px;">
+                <input id="node-input-name" type="text" style="width:100%">
+            </div>
+        </div>
+    </div>
 
 
 
@@ -85,6 +105,10 @@
 
 
 
+
+
+
+
 </script>
 
 <script type="text/javascript">
@@ -94,16 +118,18 @@
 		color: '#e1444e',
 		defaults: {
 			serial: {value: "", type: "velbus-config"},
-			address: {value: "", required: false}
+			address: {value: "", required: false},
+			channel: {value: "", required: false},
+			name: {value: "Velbus Button", required: false},
 		},
 		inputs: 0,
 		outputs: 1,
 		outputLabels: 'button pressed',
 		align: 'right',
 		icon: "",
-		paletteLabel: "Velbus Switch",
+		paletteLabel: "Velbus Button",
 		label: function () {
-			return `Velbus module! @ address ${this.address}`;
+			return this.name || `Button @ ${this.address}, ch ${this.channel}`;
 		},
 
 
@@ -143,40 +169,29 @@
 				$.get(`velbus/get-modules/${configNodeId}`)
 						.done(modules => {
 							modules = JSON.parse(modules);
-							if (modules) {
-								$('#node-input-address').val(`Loading modules ...`);
-
-								console.info("modules", modules);
-
-								//Wait 4 secs to wait for all modules to return response
-								setTimeout(() => {
-
-									if (modules.length <= 0) {
-										RED.notify("No Velbus Modules found.", "error");
-										$('#node-input-address').val(current);
-										return
-									}
 
 
-									$('#node-input-address').replaceWith('<select id="node-input-address" type="text" style="width: 100%"></select>');
-									$('#node-input-address').append('<option selected="selected" value="null">Searching Velbus modules…</option>');
+							if (modules && modules.length > 0) {
 
-									// RESET OPTIONS
-									$('#node-input-address').empty();
+								$('#node-input-address').replaceWith('<select id="node-input-address" type="text" style="width: 100%"></select>');
+								$('#node-input-address').append('<option selected="selected" value="null">Searching Velbus modules…</option>');
 
-									// SET MODULES AS OPTIONS
-									modules.forEach(function (module) {
-										$('#node-input-address').append(`<option value="${module.address}">${module.module} @ ${module.address}</option>`);
-									});
+								// RESET OPTIONS
+								$('#node-input-address').empty();
 
-									// SELECT CURRENT VALUE
-									$('#node-input-address').val(current);
+								// SET MODULES AS OPTIONS
+								modules.forEach(function (module) {
+									$('#node-input-address').append(`<option value="${module.address}">${module.name} @ ${module.address}</option>`);
+								});
 
-									velbus.close();
+								// SELECT CURRENT VALUE
+								$('#node-input-address').val(current);
 
-								}, 400);
+								//velbus.close();
+
+
 							} else {
-								RED.notify("No Velbus modules found", "error");
+								RED.notify("No Velbus modules found that have buttons", "error");
 							}
 						});
 
@@ -196,6 +211,15 @@
 					manualSwitchModule();
 				}
 
+			});
+
+			$("#node-input-get-label").click(() => {
+				$.get(`velbus/get-name-for_module/${configNodeId}`)
+						.done(modules => {
+							modules = JSON.parse(modules);
+
+
+						});
 			});
 		}
 

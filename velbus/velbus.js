@@ -49,13 +49,24 @@ class Velbus {
 			let packet = new Packet();
 			packet.setRawBytesAndPack(data);
 
-			console.info(`cmd ${packet.command} @ ${packet.address}`);
+			//console.log("packet", data);
+
+			console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
 
 			if (packet.command === constants.COMMAND_MODULE_TYPE) {
 				let moduleName = constants.moduleNames["module" + packet.dec2hex(packet.getDataByte(1))];
 				console.info(`Module ${moduleName} found @ ${packet.dec2hex(packet.address)}`);
-				this.modules.push({module: moduleName, address: packet.address});
-				//this.velbusConfigNode.events.emit("onModuleFound", packet);
+				this.modules.push({name: moduleName, address: packet.address});
+
+				//request name of module
+				let getModuleLabel = new Packet();
+				getModuleLabel.setRawBytesAndPack([
+						Packet.STX, Packet.PRIORITY_LOW, packet.address,
+						constants.COMMAND_MODULE_NAME_REQUEST, 0X00, Packet.ETX]);
+				this.port.write(getModuleLabel.getRawBuffer());
+
+			} else if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
+				console.log("name:", packet.toString());
 			} else {
 				if (this.velbusConfigNode) {
 					this.velbusConfigNode.events.emit("onSerialPacket", packet);
@@ -87,7 +98,7 @@ class Velbus {
 		for (let channel = 1; channel < 255; channel++) {
 			setTimeout(() => {
 				let getModule = new Packet();
-				getModule.setRawBytesAndPack([0X0F, 0XFB, channel, 0X40, 0X00, 0X04]);
+				getModule.setRawBytesAndPack([Packet.STX, Packet.PRIORITY_LOW, channel, constants.COMMAND_GET_MODULE, 0X00, Packet.ETX]);
 				//console.log("getModule data: ", getModule.getRawBuffer());
 				this.port.write(getModule.getRawBuffer());
 			}, 1000 + channel * 100);

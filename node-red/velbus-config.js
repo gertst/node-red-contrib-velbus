@@ -17,6 +17,7 @@ module.exports = function (RED) {
 			this.velbus = new Velbus(configNode.serial, this);
 		} else {
 			this.velbus = global.velbus;
+			this.scan();
 		}
 	}
 

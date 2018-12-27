@@ -18,8 +18,14 @@ From then on you are able to scan for Velbus modules.
 Alpha phase: loading modules, no real workflow yet!
 
 
+## Implemented modules:
+
+- VMB4PB
+- VMB8PB
+
+
 ## Todo
 
-- ☑ auto scan for Velbus serial port
+- ☒ auto scan for Velbus serial port
 - ☐ show real names of found modules
 - ☐ auto-reconnect serial port
