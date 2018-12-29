@@ -27,14 +27,6 @@ module.exports = function (RED) {
 		});
 
 
-		//request button name
-		this.velbusNameParts = ["","",""];
-		let getModuleLabel = new Packet(this.address, Packet.PRIORITY_LOW,
-				[constants.COMMAND_MODULE_NAME_REQUEST, Math.pow(2, this.channel - 1)], false);
-		velbusConfigNode.velbus.port.write(getModuleLabel.getRawBuffer());
-
-
-
 		velbusConfigNode.events.on('onSerialPacket', packet => {
 
 			if (packet.address === this.address) {
@@ -44,27 +36,23 @@ module.exports = function (RED) {
 				//console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
 
 				if (packet.command === constants.COMMAND_MODULE_TYPE) {
-					//request name of module
-					this.velbusNameParts = ["","",""];
-					let getModuleLabel = new Packet(this.address, Packet.PRIORITY_LOW,
-							[constants.COMMAND_MODULE_NAME_REQUEST, Math.pow(2, this.channel - 1)], false);
-					velbusConfigNode.velbus.port.write(getModuleLabel.getRawBuffer());
+					this.requestButtonName();
 				}
 
 				if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
 					const databytes = packet.getDataBytes();
 					if (databytes[1] === Math.pow(2, this.channel - 1)) {
-						this.setSetPartName(0, databytes);
+						this.setPartName(0, databytes);
 					}
 				} else if (packet.command === constants.COMMAND_MODULE_NAME_PART2) {
 					const databytes = packet.getDataBytes();
 					if (databytes[1] === Math.pow(2, this.channel - 1)) {
-						this.setSetPartName(1, databytes);
+						this.setPartName(1, databytes);
 					}
 				} else if (packet.command === constants.COMMAND_MODULE_NAME_PART3) {
 					const databytes = packet.getDataBytes();
 					if (databytes[1] === Math.pow(2, this.channel - 1)) {
-						this.setSetPartName(2, databytes);
+						this.setPartName(2, databytes);
 					}
 				}
 
@@ -74,26 +62,28 @@ module.exports = function (RED) {
 					const databytes = packet.getDataBytes();
 					if (databytes[1] === Math.pow(2, this.channel - 1)) {
 						this.status({fill: "green", shape: "ring", text: "Pressed"});
-						this.send({payload: {pressed: true}});
+						this.send({payload: "pressed"});
 					} else if (databytes[2] === Math.pow(2, this.channel - 1)) {
 						this.status({fill: "green", shape: "ring", text: "Released"});
-						this.send({payload: {released:true}});
+						this.send({payload: "released"});
 					} else if (databytes[3] === Math.pow(2, this.channel - 1)) {
 						this.status({fill: "green", shape: "ring", text: "Long pressed"});
-						this.send({payload: {longPressed:true}});
+						this.send({payload: "longPressed"});
 					}
 				}
 			}
 
 		});
 
-		this.setSetPartName = (index, databytes) => {
+		this.setPartName = (index, databytes) => {
 
 			//if (databytes[3] === 255) return;
 
 
+			this.velbusNameParts[index] = "";
 			for( let i=2; i<databytes.length; i++) {
 				if (databytes[i] !== 255) {
+					console.log("char", databytes[i], String.fromCharCode(databytes[i]));
 					this.velbusNameParts[index] += String.fromCharCode(databytes[i]);
 				}
 			}
@@ -101,6 +91,15 @@ module.exports = function (RED) {
 			console.log("NAME::: ", this.velbusName);
 			this.status({fill: "green", shape: "ring", text: this.velbusName});
 		}
+
+		this.requestButtonName = () => {
+			let getModuleLabel = new Packet(this.address, Packet.PRIORITY_LOW,
+					[constants.COMMAND_MODULE_NAME_REQUEST, Math.pow(2, this.channel - 1)], false);
+			velbusConfigNode.velbus.port.write(getModuleLabel.getRawBuffer());
+
+		}
+
+		this.requestButtonName();
 
 	}
 
