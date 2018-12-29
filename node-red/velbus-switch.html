@@ -18,7 +18,7 @@
 
      <div class="form-row">
         <label for="node-input-channel"><i class="fa fa-dot-circle-o"></i> Channel</label>
-        <select id="node-input-address" type="text" style="width: 70%">
+        <select id="node-input-channel" type="text" style="width: 70%">
 	        <option value="1">Button 1</option>
 	        <option value="2">Button 2</option>
 	        <option value="3">Button 3</option>
@@ -127,7 +127,7 @@
 		outputLabels: 'button pressed',
 		align: 'right',
 		icon: "",
-		paletteLabel: "Velbus Button",
+		paletteLabel: "Button",
 		label: function () {
 			return this.name || `Button @ ${this.address}, ch ${this.channel}`;
 		},

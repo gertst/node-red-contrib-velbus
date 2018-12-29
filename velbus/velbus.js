@@ -58,20 +58,23 @@ class Velbus {
 				console.info(`Module ${moduleName} found @ ${packet.dec2hex(packet.address)}`);
 				this.modules.push({name: moduleName, address: packet.address});
 
-				//request name of module
-				let getModuleLabel = new Packet();
-				getModuleLabel.setRawBytesAndPack([
-						Packet.STX, Packet.PRIORITY_LOW, packet.address,
-						constants.COMMAND_MODULE_NAME_REQUEST, 0X00, Packet.ETX]);
-				this.port.write(getModuleLabel.getRawBuffer());
-
-			} else if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
-				console.log("name:", packet.toString());
-			} else {
-				if (this.velbusConfigNode) {
-					this.velbusConfigNode.events.emit("onSerialPacket", packet);
-				}
 			}
+			// //request name of module
+			// let getModuleLabel = new Packet(packet.address, Packet.PRIORITY_LOW, 2, [constants.COMMAND_MODULE_NAME_REQUEST, 0], false);
+			// this.port.write(getModuleLabel.getRawBuffer());
+
+			if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
+				console.log("name1:", packet.toString());
+			} else if (packet.command === constants.COMMAND_MODULE_NAME_PART2) {
+				console.log("name2:", packet.toString());
+			} else if (packet.command === constants.COMMAND_MODULE_NAME_PART3) {
+				console.log("name3:", packet.toString());
+			}
+
+			if (this.velbusConfigNode) {
+				this.velbusConfigNode.events.emit("onSerialPacket", packet);
+			}
+
 
 			// //btn pressed?
 			// if (packet.command === Packet.COMMAND_BUTTON) {
@@ -81,9 +84,7 @@ class Velbus {
 			// }
 		});
 
-		if (!this.port.isOpen) {
-			this.port.open();
-		}
+		this.port.open();
 
 		this.scan();
 
@@ -99,9 +100,9 @@ class Velbus {
 			setTimeout(() => {
 				let getModule = new Packet();
 				getModule.setRawBytesAndPack([Packet.STX, Packet.PRIORITY_LOW, channel, constants.COMMAND_GET_MODULE, 0X00, Packet.ETX]);
-				//console.log("getModule data: ", getModule.getRawBuffer());
+				//console.log("getModule data: ", getModule.toString());
 				this.port.write(getModule.getRawBuffer());
-			}, 1000 + channel * 100);
+			}, 1000 + channel * 50);
 
 		}
 

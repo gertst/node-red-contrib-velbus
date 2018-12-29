@@ -7,7 +7,8 @@
     "nodes": {
       "velbus-config": "node-red/velbus-config.js",
       "velbus-switch": "node-red/velbus-switch.js",
-      "velbus-raw-command": "node-red/velbus-raw-command.js"
+      "velbus-command": "node-red/velbus-command.js",
+      "velbus-raw-bytes": "node-red/velbus-raw-bytes.js"
     }
   },
   "dependencies": {

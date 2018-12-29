@@ -55,7 +55,7 @@ class Packet {
 	}
 
 
-	/// Gets or sets the datasize of the packet. - Do not to be mistaken with size!
+	/// Gets or sets the datasize of the packet. - Not to be mistaken with size!
 	get dataSize() {
 		//trace( ">get dataSize : " + (this.rawPacket[3] & 0x0F) % 256);
 		return (this.rawPacket[3] & 0x0F) % 256;

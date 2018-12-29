@@ -7,7 +7,7 @@ module.exports = function (RED) {
 	let velbusConfigNode = null;
 
 	//runs on deploy or when node is already in flow
-	function VelbusRawCommand(config) {
+	function VelbusCommand(config) {
 
 		RED.nodes.createNode(this, config);
 
@@ -23,22 +23,30 @@ module.exports = function (RED) {
 			this.status({fill: "red", shape: "ring", text: error.message});
 		});
 
+		this.status({fill: "green", shape: "ring", text: `Waiting ...`});
+
 		velbusConfigNode.events.on('onSerialPacket', packet => {
 
 			if (packet.address === parseInt(config.address)) {
-				if (packet.command === constants.COMMAND_PUSH_BUTTON_STATUS) {
-					console.log(`pushed ${packet.getRawDataAsString()}`);
-					this.send({payload: true});
-				}
+
+				this.status({fill: "green", shape: "ring", text: `Last command: ${packet.command}`});
+
+				// if (packet.command === constants.COMMAND_PUSH_BUTTON_STATUS) {
+				// 	console.log(`pushed ${packet.getRawDataAsString()}`);
+				// 	this.send({payload: true});
+				// }
 			}
 
 		});
 
 		this.on('input', msg => {
-			let packet = new Packet();
-			packet.setDataBytes([
-				parseInt(this.command), this.stringToArray(this.databytes)]);
+			let packet = new Packet(parseInt(this.address));
+			packet.priority = parseInt(this.priority);
+			let arr = [parseInt(this.command)];
+			arr = arr.concat(this.stringToArray(this.databytes));
+			packet.setDataBytes(arr);
 			packet.pack();
+			console.log(`sent ${packet.toString()}`);
 			velbusConfigNode.velbus.port.write(packet.getRawBuffer());
 
 		});
@@ -54,5 +62,5 @@ module.exports = function (RED) {
 	}
 
 
-	RED.nodes.registerType("velbus-raw-command", VelbusRawCommand);
+	RED.nodes.registerType("velbus-command", VelbusCommand);
 }

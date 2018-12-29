@@ -1,4 +1,5 @@
 let constants = require('../velbus/const');
+let Packet = require('../velbus/packet');
 
 module.exports = function (RED) {
 	"use strict";
@@ -11,7 +12,15 @@ module.exports = function (RED) {
 		RED.nodes.createNode(this, config);
 
 		this.name = config.name;
-		//this.address = parseInt(config.address);
+		this.address = parseInt(config.address);
+		this.channel = parseInt(config.channel);
+
+		this.velbusNamePart1 = "";
+		this.velbusNamePart2 = "";
+		this.velbusNamePart3 = "";
+		this.velbusName = "";
+
+		this.status({fill: "green", shape: "ring", text: `Waiting ...`});
 
 		velbusConfigNode = RED.nodes.getNode(config.serial);
 
@@ -21,7 +30,32 @@ module.exports = function (RED) {
 
 		velbusConfigNode.events.on('onSerialPacket', packet => {
 
-			if (packet.address === parseInt(config.address)) {
+			if (packet.address === this.address) {
+
+				if (packet.command === constants.COMMAND_MODULE_TYPE) {
+					//request name of module
+					let getModuleLabel = new Packet(packet.address, Packet.PRIORITY_LOW, 2,
+							[constants.COMMAND_MODULE_NAME_REQUEST, this.channel], false);
+					velbusConfigNode.velbus.port.write(getModuleLabel.getRawBuffer());
+				}
+
+				if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
+					console.log("name1:", packet.toString());
+					const databytes = packet.getDataBytes();
+					if (databytes[1] === this.channel) {
+						for( let i=2; i<8; i++) {
+							this.velbusNamePart1 += String.fromCharCode(databytes[i]);
+						}
+						console.log("1st part::: ", this.velbusNamePart1)
+					}
+				} else if (packet.command === constants.COMMAND_MODULE_NAME_PART2) {
+					console.log("name2:", packet.toString());
+				} else if (packet.command === constants.COMMAND_MODULE_NAME_PART3) {
+					console.log("name3:", packet.toString());
+				}
+
+				this.status({fill: "green", shape: "ring", text: `Last command: ${packet.command}`});
+
 				if (packet.command === constants.COMMAND_PUSH_BUTTON_STATUS) {
 					console.log(`pushed ${packet.getRawDataAsString()}`);
 					this.send({payload: true});

@@ -29,3 +29,4 @@ Alpha phase: loading modules, no real workflow yet!
 - ☒ auto scan for Velbus serial port
 - ☐ show real names of found modules
 - ☐ auto-reconnect serial port
+- ☐ consts: add friendly names of commands and show commands

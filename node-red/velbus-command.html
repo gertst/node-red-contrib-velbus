@@ -1,4 +1,4 @@
-<script type="text/x-red" data-template-name="velbus-raw-command">
+<script type="text/x-red" data-template-name="velbus-command">
 
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
@@ -62,17 +62,17 @@
 
 </script>
 
-<script type="text/x-red" data-help-name="velbus-raw-command">
+<script type="text/x-red" data-help-name="velbus-command">
 
 </script>
 
 <script type="text/javascript">
 
-	RED.nodes.registerType('velbus-raw-command', {
+	RED.nodes.registerType('velbus-command', {
 		category: 'Velbus',
 		color: '#e1444e',
 		defaults: {
-			name: {value: "Raw Command", required: true},
+			name: {value: "Command", required: true},
 			serial: {value: "", type: "velbus-config"},
 			address: {value: "", required: true},
 			priority: {value: "", required: true},
@@ -81,10 +81,9 @@
 		},
 		inputs: 1,
 		outputs: 1,
-		outputLabels: 'button pressed',
 		align: 'right',
 		icon: "",
-		paletteLabel: "Velbus Command",
+		paletteLabel: "Command",
 		label: function () {
 			return this.name;
 		},

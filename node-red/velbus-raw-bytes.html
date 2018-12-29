@@ -1,0 +1,53 @@
+<script type="text/x-red" data-template-name="velbus-raw-bytes">
+
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-serial"><i class="fa fa-server"></i> Serial Port</label>
+        <input type="text" id="node-input-serial">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-bytes"><i class="fa fa-dot-circle-o"></i> Raw Bytes (space separated)</label>
+        <input type="text" id="node-input-bytes">
+    </div>
+
+
+
+
+</script>
+
+<script type="text/javascript">
+
+	RED.nodes.registerType('velbus-raw-bytes', {
+		category: 'Velbus',
+		color: '#e1444e',
+		defaults: {
+			name: {value: "Raw Bytes", required: true},
+			serial: {value: "", type: "velbus-config"},
+			bytes: {value: "", required: false},
+		},
+		inputs: 1,
+		outputs: 1,
+		align: 'right',
+		icon: "",
+		paletteLabel: "Raw Bytes",
+		label: function () {
+			return this.name;
+		},
+
+
+
+	});
+</script>
+
+
+<script type="text/x-red" data-help-name="velbus-raw-bytes">
+	<p>Fill in a space separated list of numbers. Use the prefix '0x' for hex values.</p>
+	<p>For convenience, the start, end and checksum byte will be reset for you.</p>
+	<p>E.g.: To request the module type at channel 0x10, fill in: <pre>0x0F 0xFB 0x10 0x40 -0x15A 0x04</pre></p>
+	<p>Use an injection node to trigger the command. The payload can be anything. It is not used.</p>
+</script>
