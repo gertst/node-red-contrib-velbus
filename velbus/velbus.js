@@ -102,7 +102,7 @@ class Velbus {
 				getModule.setRawBytesAndPack([Packet.STX, Packet.PRIORITY_LOW, addr, 0X40, 0X00, Packet.ETX]);
 				//console.log("getModule data: ", getModule.toString());
 				this.port.write(getModule.getRawBuffer());
-			}, 1000 + addr * 50);
+			}, 1000 + addr * 100);
 
 		}
 
