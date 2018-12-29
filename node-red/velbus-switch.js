@@ -15,9 +15,7 @@ module.exports = function (RED) {
 		this.address = parseInt(config.address);
 		this.channel = parseInt(config.channel);
 
-		this.velbusNamePart1 = "";
-		this.velbusNamePart2 = "";
-		this.velbusNamePart3 = "";
+		this.velbusNameParts = ["","",""];
 		this.velbusName = "";
 
 		this.status({fill: "green", shape: "ring", text: `Waiting ...`});
@@ -28,43 +26,81 @@ module.exports = function (RED) {
 			this.status({fill: "red", shape: "ring", text: error.message});
 		});
 
+
+		//request button name
+		this.velbusNameParts = ["","",""];
+		let getModuleLabel = new Packet(this.address, Packet.PRIORITY_LOW,
+				[constants.COMMAND_MODULE_NAME_REQUEST, Math.pow(2, this.channel - 1)], false);
+		velbusConfigNode.velbus.port.write(getModuleLabel.getRawBuffer());
+
+
+
 		velbusConfigNode.events.on('onSerialPacket', packet => {
 
 			if (packet.address === this.address) {
 
-				console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
+				//this.status({fill: "green", shape: "ring", text: `Last command: ${packet.command}`});
+
+				//console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
 
 				if (packet.command === constants.COMMAND_MODULE_TYPE) {
 					//request name of module
-					let getModuleLabel = new Packet(packet.address, Packet.PRIORITY_LOW,
-							[constants.COMMAND_MODULE_NAME_REQUEST, this.channel], false);
+					this.velbusNameParts = ["","",""];
+					let getModuleLabel = new Packet(this.address, Packet.PRIORITY_LOW,
+							[constants.COMMAND_MODULE_NAME_REQUEST, Math.pow(2, this.channel - 1)], false);
 					velbusConfigNode.velbus.port.write(getModuleLabel.getRawBuffer());
 				}
 
 				if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
-					console.log("name1:", packet.toString());
 					const databytes = packet.getDataBytes();
-					if (databytes[1] === this.channel) {
-						for( let i=2; i<8; i++) {
-							this.velbusNamePart1 += String.fromCharCode(databytes[i]);
-						}
-						console.log("1st part::: ", this.velbusNamePart1)
+					if (databytes[1] === Math.pow(2, this.channel - 1)) {
+						this.setSetPartName(0, databytes);
 					}
 				} else if (packet.command === constants.COMMAND_MODULE_NAME_PART2) {
-					console.log("name2:", packet.toString());
+					const databytes = packet.getDataBytes();
+					if (databytes[1] === Math.pow(2, this.channel - 1)) {
+						this.setSetPartName(1, databytes);
+					}
 				} else if (packet.command === constants.COMMAND_MODULE_NAME_PART3) {
-					console.log("name3:", packet.toString());
+					const databytes = packet.getDataBytes();
+					if (databytes[1] === Math.pow(2, this.channel - 1)) {
+						this.setSetPartName(2, databytes);
+					}
 				}
 
-				this.status({fill: "green", shape: "ring", text: `Last command: ${packet.command}`});
 
 				if (packet.command === constants.COMMAND_PUSH_BUTTON_STATUS) {
-					console.log(`pushed ${packet.getRawDataAsString()}`);
-					this.send({payload: true});
+					//console.log(`pushed ${packet.getRawDataAsString()}`);
+					const databytes = packet.getDataBytes();
+					if (databytes[1] === Math.pow(2, this.channel - 1)) {
+						this.status({fill: "green", shape: "ring", text: "Pressed"});
+						this.send({payload: {pressed: true}});
+					} else if (databytes[2] === Math.pow(2, this.channel - 1)) {
+						this.status({fill: "green", shape: "ring", text: "Released"});
+						this.send({payload: {released:true}});
+					} else if (databytes[3] === Math.pow(2, this.channel - 1)) {
+						this.status({fill: "green", shape: "ring", text: "Long pressed"});
+						this.send({payload: {longPressed:true}});
+					}
 				}
 			}
 
 		});
+
+		this.setSetPartName = (index, databytes) => {
+
+			//if (databytes[3] === 255) return;
+
+
+			for( let i=2; i<databytes.length; i++) {
+				if (databytes[i] !== 255) {
+					this.velbusNameParts[index] += String.fromCharCode(databytes[i]);
+				}
+			}
+			this.velbusName = this.velbusNameParts.join("");
+			console.log("NAME::: ", this.velbusName);
+			this.status({fill: "green", shape: "ring", text: this.velbusName});
+		}
 
 	}
 

@@ -156,8 +156,8 @@ class Packet {
 	 */
 	pack() {
 		this.rawPacket[0] = (Packet.STX);
+		this.rawPacket[this.size - 1] = (Packet.ETX); //order is important
 		this.rawPacket[this.size - 2] = (this.checksum_Crc8());
-		this.rawPacket[this.size - 1] = (Packet.ETX);
 
 		return this.rawPacket;
 	}
@@ -206,8 +206,8 @@ class Packet {
 
 	getDataBytes() {
 		var ba = [];
-		for (let i = 4; i < this.dataSize; i++) {
-			ba.push(this.rawPacket[i]);
+		for (let i = 0; i < this.dataSize; i++) {
+			ba.push(this.rawPacket[i + 4]);
 		}
 		return ba;
 	}
