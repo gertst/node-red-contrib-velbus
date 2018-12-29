@@ -32,9 +32,11 @@ module.exports = function (RED) {
 
 			if (packet.address === this.address) {
 
+				console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
+
 				if (packet.command === constants.COMMAND_MODULE_TYPE) {
 					//request name of module
-					let getModuleLabel = new Packet(packet.address, Packet.PRIORITY_LOW, 2,
+					let getModuleLabel = new Packet(packet.address, Packet.PRIORITY_LOW,
 							[constants.COMMAND_MODULE_NAME_REQUEST, this.channel], false);
 					velbusConfigNode.velbus.port.write(getModuleLabel.getRawBuffer());
 				}

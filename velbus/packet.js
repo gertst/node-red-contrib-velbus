@@ -25,7 +25,7 @@ class Packet {
 	};
 
 
-	constructor(address, packetPriority = Packet.PRIORITY_HIGH, dataSize = Packet.MAX_PACKET_SIZE, dataBytes = null, rtr = false) {
+	constructor(address, packetPriority = Packet.PRIORITY_HIGH, dataBytes = null, rtr = false) {
 
 		this.rawPacket = [];
 
@@ -33,10 +33,9 @@ class Packet {
 		this.priority = packetPriority;
 		this.rtr = rtr;
 		if (dataBytes) {
-			this.dataSize = dataSize;
 			this.setDataBytes(dataBytes);
+			this.pack();
 		}
-		this.pack();
 		return this;
 	}
 
@@ -48,7 +47,7 @@ class Packet {
 
 	set address(value) {
 		if ((value < 0) || (value > 0xFF)) {
-			new Error("Valid address range between 0 and 255.");
+			throw "Valid address range between 0 and 255.";
 		}
 		this.rawPacket[2] = value;
 
@@ -58,15 +57,11 @@ class Packet {
 	/// Gets or sets the datasize of the packet. - Not to be mistaken with size!
 	get dataSize() {
 		//trace( ">get dataSize : " + (this.rawPacket[3] & 0x0F) % 256);
-		return (this.rawPacket[3] & 0x0F) % 256;
+		return this.rtr ? 0 : this.rawPacket[3];
 	}
 
 	set dataSize(value) {
-		if ((value < 0) || (value > 8)) {
-			new Error("Invalid datasize. Value must range between 0 and 8.");
-		}
-		var orig = this.rawPacket[3];
-		this.rawPacket[3] = ((orig & 0xF0) + value) % 256;
+		this.rawPacket[3] = value;
 	}
 
 	/// Gets the total size of the packet in its raw form.
@@ -115,9 +110,8 @@ class Packet {
 		return this;
 	}
 
-	//sets the  raw byte at the specified position idx.
+	//sets the raw byte at the specified position idx.
 	setRawByte(idx, value) {
-
 		this.rawPacket[idx] = (value);
 	}
 
@@ -125,13 +119,12 @@ class Packet {
 		for (let i = 0; i < ba.length; i++) {
 			this.setRawByte(i, ba[i]);
 		}
+		this.dataSize = this.rtr ? 0x40 : ba.length - 6;
 		return this;
 	}
 
 	setRawBytesAndPack(ba) {
-		for (let i = 0; i < ba.length; i++) {
-			this.setRawByte(i, ba[i]);
-		}
+		this.setRawBytes(ba);
 		this.pack();
 		return this;
 	}
@@ -141,16 +134,14 @@ class Packet {
 	 * byte is the first databyte, the datasize needs to be greater or equal to one.
 	 */
 	get command() {
-		if (this.dataSize <= 0) {
-			new Error("Packet does not contain a command byte.");
+		if (this.dataSize === 0) {
+			return 0
+		} else {
+			return this.getDataByte(0);
 		}
-		return this.getDataByte(0);
 	}
 
 	set command(value) {
-		if (this.dataSize <= 0) {
-			new Error("Packet does not contain a command byte.");
-		}
 		this.setDataByte(0, value);
 	}
 
@@ -161,15 +152,12 @@ class Packet {
 
 	/**
 	 * Packs the byte so it is ready for sending. Packing involves adding a checksum and the frame delimiters.
-	 * Returns a raw representation of the packet.</returns>
+	 * Returns a raw representation of the packet.
 	 */
 	pack() {
-		//if (command == 0) {
-		//throw Error("No command present for Packet " + this);
-		//}
 		this.rawPacket[0] = (Packet.STX);
+		this.rawPacket[this.size - 2] = (this.checksum_Crc8());
 		this.rawPacket[this.size - 1] = (Packet.ETX);
-		this.rawPacket[this.size - 2] = (this.checksum_Crc8()); // size issue
 
 		return this.rawPacket;
 	}
@@ -177,35 +165,13 @@ class Packet {
 	/// Calculates the 2's complement checksum of a specified buffer.
 	checksum_Crc8() {
 
-		let c = 0;
+		let crc = 0;
 
-		for(let i=0; i<this.size-2; ++i)
-			c += this.rawPacket[i];
+		for (let i = 0; i < this.rawPacket.length - 2; i++) {
+			crc = (crc + (this.rawPacket[i] & 0xFF)) & 0xFF;
+		}
 
-		return (-c);
-
-		// let checksum = 0;
-		// for (let i = 0; i < this.size - 2; i++) {
-		// 	checksum += this.rawPacket[i];
-		// 	//trace( "this.rawPacket[" + i + "] : " + this.rawPacket[i] );
-		// 	if (checksum > 255) {
-		// 		checksum = checksum - 256;
-		// 	}
-		// }
-		// checksum &= 0xff;
-		// checksum ^= 0xff;
-		// checksum += 0x01;
-		// return (checksum );
-
-
-		// let crc = 0;
-		//
-		// for (let i = 0; i < this.rawPacket.length - 2; i++) {
-		// 	crc = (crc + (this.rawPacket[i] & 0xFF)) & 0xFF;
-		// }
-		//
-		// return (0x100 - crc);
-
+		return (0x100 - crc);
 
 	}
 
@@ -219,9 +185,7 @@ class Packet {
 	}
 
 	toString() {
-		return "adress: " + this.dec2hex(this.address) + " - priority: " + this.dec2hex(this.priority) + " - rtr: " + this.rtr +
-				" - dataSize: " + this.dec2hex(this.dataSize) + " - command: " + this.dec2hex(this.command) +
-				" - checksum: " + this.dec2hex(this.checksum_Crc8()) + " - data: " + this.getDataBytesAsString() + " - raw: " + this.getRawDataAsString();
+		return `adress: ${this.dec2hex(this.address)} - priority: ${this.dec2hex(this.priority)} - rtr: ${this.rtr} - command: ${this.dec2hex(this.command)} - data: ${this.getDataBytesAsString()} - raw: ${this.getRawDataAsString()}`;
 	}
 
 	getRawDataAsString() {
@@ -242,7 +206,7 @@ class Packet {
 
 	getDataBytes() {
 		var ba = [];
-		for (let i = 0; i < this.dataSize; i++) {
+		for (let i = 4; i < this.dataSize; i++) {
 			ba.push(this.rawPacket[i]);
 		}
 		return ba;
@@ -250,7 +214,7 @@ class Packet {
 
 	getDataBytesAsString() {
 		let s = "";
-		for (let i = 0; i < this.dataSize; i++) {
+		for (let i = 4; i < this.dataSize; i++) {
 			s += this.dec2hex(this.getDataByte(i)) + " ";
 		}
 		return s;
@@ -261,11 +225,6 @@ class Packet {
 	}
 
 	dec2hex(d) {
-		//var c:Array = [ '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' ];
-		//if( d> 255 ) d = d - 256;
-		//var l = d / 16;
-		//var r = d % 16;
-		//return c[l]+c[r];
 		if (isNaN(d)) {
 			return "NaN"
 		}

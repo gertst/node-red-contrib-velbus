@@ -51,7 +51,7 @@ class Velbus {
 
 			//console.log("packet", data);
 
-			console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
+			//console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
 
 			if (packet.command === constants.COMMAND_MODULE_TYPE) {
 				let moduleName = constants.moduleNames["module" + packet.dec2hex(packet.getDataByte(1))];
@@ -62,14 +62,14 @@ class Velbus {
 			// //request name of module
 			// let getModuleLabel = new Packet(packet.address, Packet.PRIORITY_LOW, 2, [constants.COMMAND_MODULE_NAME_REQUEST, 0], false);
 			// this.port.write(getModuleLabel.getRawBuffer());
-
-			if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
-				console.log("name1:", packet.toString());
-			} else if (packet.command === constants.COMMAND_MODULE_NAME_PART2) {
-				console.log("name2:", packet.toString());
-			} else if (packet.command === constants.COMMAND_MODULE_NAME_PART3) {
-				console.log("name3:", packet.toString());
-			}
+			//
+			// if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
+			// 	console.log("name1:", packet.toString());
+			// } else if (packet.command === constants.COMMAND_MODULE_NAME_PART2) {
+			// 	console.log("name2:", packet.toString());
+			// } else if (packet.command === constants.COMMAND_MODULE_NAME_PART3) {
+			// 	console.log("name3:", packet.toString());
+			// }
 
 			if (this.velbusConfigNode) {
 				this.velbusConfigNode.events.emit("onSerialPacket", packet);
@@ -96,13 +96,13 @@ class Velbus {
 	 */
 	scan() {
 		this.modules = [];
-		for (let channel = 1; channel < 255; channel++) {
+		for (let addr = 1; addr < 200; addr++) {
 			setTimeout(() => {
 				let getModule = new Packet();
-				getModule.setRawBytesAndPack([Packet.STX, Packet.PRIORITY_LOW, channel, constants.COMMAND_GET_MODULE, 0X00, Packet.ETX]);
+				getModule.setRawBytesAndPack([Packet.STX, Packet.PRIORITY_LOW, addr, 0X40, 0X00, Packet.ETX]);
 				//console.log("getModule data: ", getModule.toString());
 				this.port.write(getModule.getRawBuffer());
-			}, 1000 + channel * 50);
+			}, 1000 + addr * 50);
 
 		}
 
