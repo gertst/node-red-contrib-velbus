@@ -15,8 +15,11 @@ From then on you are able to scan for Velbus modules.
 
 ## Status
 
-Alpha phase: loading modules, no real workflow yet!
-
+- 2018/12/17 
+	- Alpha phase: loading modules, no real workflow yet!
+- 2019/01/05 
+	- Button node proof of concept works
+	- Reconnect to Velbus works
 
 ## Implemented modules:
 
@@ -27,6 +30,6 @@ Alpha phase: loading modules, no real workflow yet!
 ## Todo
 
 - ☒ auto scan for Velbus serial port
-- ☐ show real names of found modules
-- ☐ auto-reconnect serial port
+- ☐ show real names of found modules (WIP)
+- ☒ auto-reconnect serial port
 - ☐ consts: add friendly names of commands and show commands
