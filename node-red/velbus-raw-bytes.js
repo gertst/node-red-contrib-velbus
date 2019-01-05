@@ -20,6 +20,10 @@ module.exports = function (RED) {
 			this.status({fill: "red", shape: "ring", text: error.message});
 		});
 
+		velbusConfigNode.events.on('onReconnecting', error => {
+			this.status({fill: "green", shape: "ring", text: "Reconnected"});
+		});
+
 		this.status({fill: "green", shape: "ring", text: `Waiting ...`});
 
 		velbusConfigNode.events.on('onSerialPacket', packet => {

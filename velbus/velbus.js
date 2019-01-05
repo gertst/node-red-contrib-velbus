@@ -12,18 +12,19 @@ class Velbus {
 	 */
 	constructor(port, velbusConfigNode) {
 		global.velbus = this;
-		this.modules = [];
+		this.portString = port;
 
+		this.modules = [];
 		this.velbusConfigNode = velbusConfigNode;
-		this.init(port);
+		this.init();
 
 	}
 
 
-	init(port) {
+	init() {
 
 
-		this.port = new SerialPort(port, {
+		this.port = new SerialPort(this.portString, {
 			baudRate: 38400,
 			autoOpen: false
 		});
@@ -36,6 +37,7 @@ class Velbus {
 			if (this.velbusConfigNode) {
 				this.velbusConfigNode.events.emit("onSerialError", err);
 			}
+			this.iid = setTimeout(() => this.tryReconnect(), 3000);
 		});
 
 		this.port.on('close', msg => {
@@ -43,6 +45,7 @@ class Velbus {
 			if (this.velbusConfigNode) {
 				this.velbusConfigNode.events.emit("onSerialError", msg);
 			}
+			this.iid = setTimeout(() => this.tryReconnect(), 3000);
 		});
 
 		this.port.on('data', data => {
@@ -88,6 +91,13 @@ class Velbus {
 
 		this.scan();
 
+	}
+
+	tryReconnect() {
+		clearTimeout(this.iid);
+
+		this.port.open();
+		this.velbusConfigNode.events.emit("onReconnecting");
 	}
 
 
