@@ -3,11 +3,12 @@
 This is a custom Node Red plugin to connect the Velleman 
 Velbus home automation system to Node Red.
 
-It requires a serial (USB) connection to the computer where
-Node Red is running. For now only tested on a Macbook,
-but the aim is to get it running on a Raspberry Pi.
+It requires a serial (USB) connection from Velbus to the computer where
+Node Red is running. 
 
-Once installed, Velbus nodes can be added to out flow.
+Tested (and working) on a Macbook Pro and a Raspberry Pi.
+
+Once installed, Velbus nodes like Buttons, Relays and Dimmers can be added to the flow.
 First select the serial port: this should be automatically found.
 Then deploy to save and connect to Velbus.
 From then on you are able to scan for Velbus modules. 
@@ -21,11 +22,18 @@ From then on you are able to scan for Velbus modules.
 	- Button node proof of concept works
 	- Reconnect to Velbus works
 
-## Implemented modules:
+## Implemented Velbus modules:
 
+##### Buttons
 - VMB4PB
 - VMB8PB
+- Other button modules can probably be easily added, but I don't have them, so I cannot test.
 
+##### Dimmers
+- to do: VMBDMI
+
+##### Relays
+- to do: VMB4RY
 
 ## Todo
 
