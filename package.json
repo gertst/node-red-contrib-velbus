@@ -1,7 +1,7 @@
 {
   "name": "red-contrib-velbus",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
   "scripts": {},
   "node-red": {
     "nodes": {
