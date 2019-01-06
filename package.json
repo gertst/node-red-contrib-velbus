@@ -23,6 +23,7 @@
     "url": "git+https://github.com/gertst/node-red-contrib-velbus.git"
   },
   "keywords": [
+    "node-red",
     "Velbus",
     "Velleman"
   ],
