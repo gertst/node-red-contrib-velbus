@@ -1,5 +1,5 @@
 {
-  "name": "node-red-contrib-velbus",
+  "name": "red-contrib-velbus",
   "version": "0.1.0",
   "private": true,
   "scripts": {},
@@ -14,5 +14,22 @@
   "dependencies": {
     "events": "^3.0.0",
     "serialport": "^7.1.0"
-  }
+  },
+  "description": "This is a custom Node Red plugin to connect the Velleman  Velbus home automation system to Node Red.",
+  "main": "index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gertst/node-red-contrib-velbus.git"
+  },
+  "keywords": [
+    "Velbus",
+    "Velleman"
+  ],
+  "author": "Gert Stalpaert",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gertst/node-red-contrib-velbus/issues"
+  },
+  "homepage": "https://github.com/gertst/node-red-contrib-velbus#readme"
 }
