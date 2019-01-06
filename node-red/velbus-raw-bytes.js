@@ -1,5 +1,6 @@
 let constants = require('../velbus/const');
 let Packet = require('../velbus/packet');
+let mustache = require("mustache");
 
 module.exports = function (RED) {
 	"use strict";
@@ -24,7 +25,7 @@ module.exports = function (RED) {
 			this.status({fill: "green", shape: "ring", text: "Reconnected"});
 		});
 
-		this.status({fill: "green", shape: "ring", text: `Waiting ...`});
+		this.status({fill: "green", shape: "ring", text: ``});
 
 		velbusConfigNode.events.on('onSerialPacket', packet => {
 
@@ -42,6 +43,7 @@ module.exports = function (RED) {
 
 		this.on('input', msg => {
 			let packet = new Packet();
+			this.bytes = mustache.render(this.bytes, msg); //parse mustache tags
 			packet.setRawBytesAndPack(this.stringToArray(this.bytes));
 			console.log(`sent ${packet.toString()}`);
 			velbusConfigNode.velbus.port.write(packet.getRawBuffer());

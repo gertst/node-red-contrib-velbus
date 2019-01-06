@@ -48,6 +48,12 @@
 <script type="text/x-red" data-help-name="velbus-raw-bytes">
 	<p>Fill in a space separated list of numbers. Use the prefix '0x' for hex values.</p>
 	<p>For convenience, the start, end and checksum byte will be reset for you.</p>
-	<p>E.g.: To request the module type at channel 0x10, fill in: <pre>0x0F 0xFB 0x10 0x40 -0x15A 0x04</pre></p>
-	<p>Use an injection node to trigger the command. The payload can be anything. It is not used.</p>
+	<p>E.g.: To request the module type at channel 0x10, fill in: <pre>0x0F 0xFB 0x10 0x40 0 0x04</pre><br>
+	As you can see, the second last byte is set to 0, because this will be auto-replaced by the checksum.
+	</p>
+	<p>Use an injection node to trigger the command. The payload can be anything. <br>
+	The message object can be used in muchtache notation.<br>
+	E.g.: To set sync all modules with the current day and time, use:
+	<pre>0x0F 0xFB 00 0x04 0xD8 {{msg.day}} 14 52 0 0x04</pre>
+	</p>
 </script>
