@@ -1,7 +1,7 @@
 # node-red-contrib-velbus
 
-EARLY PREVIEW! This is a custom Node Red plugin to connect the Velleman 
-Velbus home automation system to Node Red. IT'S STILL UN UNFINISHED VERSION!
+WORK IN PROGRESS - This is a custom Node Red plugin to connect the Velleman 
+Velbus home automation system to Node Red. IT'S STILL AN UNFINISHED VERSION!
 
 It requires a serial (USB) connection from Velbus to the computer where
 Node Red is running. 
@@ -19,7 +19,7 @@ From then on you are able to scan for Velbus modules.
 - 2018/12/17 
 	- Alpha phase: loading modules, no real workflow yet!
 - 2019/01/05 
-	- Button node proof of concept works
+	- Button node proof of concept works, but not without issues.
 	- Reconnect to Velbus works
 
 ## Implemented Velbus modules:
