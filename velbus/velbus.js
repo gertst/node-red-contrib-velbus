@@ -62,29 +62,13 @@ class Velbus {
 				this.modules.push({name: moduleName, address: packet.address});
 
 			}
-			// //request name of module
-			// let getModuleLabel = new Packet(packet.address, Packet.PRIORITY_LOW, 2, [constants.COMMAND_MODULE_NAME_REQUEST, 0], false);
-			// this.port.write(getModuleLabel.getRawBuffer());
-			//
-			// if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
-			// 	console.log("name1:", packet.toString());
-			// } else if (packet.command === constants.COMMAND_MODULE_NAME_PART2) {
-			// 	console.log("name2:", packet.toString());
-			// } else if (packet.command === constants.COMMAND_MODULE_NAME_PART3) {
-			// 	console.log("name3:", packet.toString());
-			// }
+
 
 			if (this.velbusConfigNode) {
 				this.velbusConfigNode.events.emit("onSerialPacket", packet);
 			}
 
 
-			// //btn pressed?
-			// if (packet.command === Packet.COMMAND_BUTTON) {
-			// 	console.log("Btn:v2: " + packet.address); //
-			// 	node.send({payload: "btn:" + packet.address});
-			// 	//self.emitter.emit(Velbus.EVT_BUTTON_PRESSED, buffer);
-			// }
 		});
 
 		this.port.open();
