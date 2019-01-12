@@ -1,11 +1,8 @@
 let constants = require('../velbus/const');
-let Packet = require('../velbus/packet');
 let Velbus = require('../velbus/velbus');
 
 module.exports = function (RED) {
 	"use strict";
-
-	let velbusConfigNode = null;
 
 	//runs on deploy or when node is already in flow
 	function VelbusSwitch(config) {
@@ -16,12 +13,13 @@ module.exports = function (RED) {
 		this.address = parseInt(config.address);
 		this.channel = parseInt(config.channel);
 
+		var thisNode = this;
+
 		if (!global.velbus) {
 			global.velbus = new Velbus(this);
 		}
 
 
-		this.velbusNameParts = ["","",""];
 		this.velbusName = "";
 
 		this.status({fill: "green", shape: "ring", text: `Waiting ...`});
@@ -55,21 +53,21 @@ module.exports = function (RED) {
 					//console.log(`pushed ${packet.getRawDataAsString()}`);
 					const databytes = packet.getDataBytes();
 					if (databytes[1] === Math.pow(2, this.channel - 1)) {
-						this.status({fill: "green", shape: "ring", text: "Pressed"});
-						this.send({payload: "pressed"});
+						this.status({fill: "green", shape: "ring", text: `${this.velbusName} Pressed`});
+						thisNode.send({payload: "pressed"});
 					} else if (databytes[2] === Math.pow(2, this.channel - 1)) {
-						this.status({fill: "green", shape: "ring", text: "Released"});
-						this.send({payload: "released"});
+						this.status({fill: "green", shape: "ring", text: `${this.velbusName} Released`});
+						thisNode.send({payload: "released"});
 					} else if (databytes[3] === Math.pow(2, this.channel - 1)) {
-						this.status({fill: "green", shape: "ring", text: "Long pressed"});
-						this.send({payload: "longPressed"});
+						this.status({fill: "green", shape: "ring", text: `${this.velbusName} Long pressed`});
+						thisNode.send({payload: "longPressed"});
 					}
 				}
 			}
 
 		});
 
-		global.velbus.requestButtonName(this.address, this.channel);
+		setTimeout(() => global.velbus.requestButtonName(this.address, this.channel), 3000);
 
 		global.velbus.on('onButtonName', (address, channel, name) => {
 			if (address === this.address && channel === this.channel) {
