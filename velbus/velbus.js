@@ -101,16 +101,22 @@ class Velbus extends EventEmitter {
 	 * Scan the bus for Velbus modules
 	 */
 	scan() {
-		this.modules = [];
-		for (let addr = 1; addr < 200; addr++) {
-			setTimeout(() => {
-				let getModule = new Packet();
-				getModule.setRawBytesAndPack([Packet.STX, Packet.PRIORITY_LOW, addr, 0X40, 0X00, Packet.ETX]);
-				//console.log("getModule data: ", getModule.toString());
-				this.port.write(getModule.getRawBuffer());
-			}, 1000 + addr * 100);
 
+		if (this.port) {
+			this.modules = [];
+			for (let addr = 1; addr < 200; addr++) {
+				setTimeout(() => {
+					let getModule = new Packet();
+					getModule.setRawBytesAndPack([Packet.STX, Packet.PRIORITY_LOW, addr, 0X40, 0X00, Packet.ETX]);
+					//console.log("getModule data: ", getModule.toString());
+					this.port.write(getModule.getRawBuffer());
+				}, 1000 + addr * 100);
+
+			}
+		} else {
+			console.warn("No Velbus serial port found - not able to scan for modules.");
 		}
+
 
 	}
 
@@ -121,7 +127,11 @@ class Velbus extends EventEmitter {
 	requestButtonName(address, channel) {
 		let getModuleLabel = new Packet(address, Packet.PRIORITY_LOW,
 				[constants.COMMAND_MODULE_NAME_REQUEST, Math.pow(2, channel - 1)], false);
-		this.port.write(getModuleLabel.getRawBuffer());
+		if (this.port) {
+			this.port.write(getModuleLabel.getRawBuffer());
+		} else {
+			console.warn("No Velbus serial port found - not able to get button names.");
+		}
 
 	}
 
