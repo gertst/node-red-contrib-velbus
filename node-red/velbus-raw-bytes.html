@@ -6,14 +6,15 @@
     </div>
 
     <div class="form-row">
-        <label for="node-input-serial"><i class="fa fa-server"></i> Serial Port</label>
-        <input type="text" id="node-input-serial">
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-bytes"><i class="fa fa-dot-circle-o"></i> Raw Bytes (space separated)</label>
+        <label for="node-input-bytes"><i class="fa fa-dot-circle-o"></i> Raw Bytes</label>
         <input type="text" id="node-input-bytes">
     </div>
+
+	<div class="form-tips">
+		<b>Note:</b> Raw bytes should be separated by spaces.<br>
+		Add "0x" to use hexadecimal values. Eg: <pre>0x0F 0xFB 0x10 0x40 0 0x04</pre><br>
+		<i>See info box for more details.</i>
+	</div>
 
 
 
@@ -26,19 +27,17 @@
 		category: 'Velbus',
 		color: '#e1444e',
 		defaults: {
-			name: {value: "Raw Bytes", required: true},
-			serial: {value: "", type: "velbus-config"},
+			name: {value: "Raw Bytes", required: false},
 			bytes: {value: "", required: false},
 		},
 		inputs: 1,
-		outputs: 1,
+		outputs: 0,
 		align: 'right',
 		icon: "",
 		paletteLabel: "Raw Bytes",
 		label: function () {
 			return this.name;
 		},
-
 
 
 	});
@@ -48,12 +47,16 @@
 <script type="text/x-red" data-help-name="velbus-raw-bytes">
 	<p>Fill in a space separated list of numbers. Use the prefix '0x' for hex values.</p>
 	<p>For convenience, the start, end and checksum byte will be reset for you.</p>
-	<p>E.g.: To request the module type at channel 0x10, fill in: <pre>0x0F 0xFB 0x10 0x40 0 0x04</pre><br>
+	<p>E.g.1: To request the module type at channel 0x10, fill in: <pre>0x0F 0xFB 0x10 0x40 0 0x04</pre><br>
 	As you can see, the second last byte is set to 0, because this will be auto-replaced by the checksum.
 	</p>
-	<p>Use an injection node to trigger the command. The payload can be anything. <br>
-	The message object can be used in muchtache notation.<br>
-	E.g.: To set sync all modules with the current day and time, use:
-	<pre>0x0F 0xFB 00 0x04 0xD8 {{msg.day}} 14 52 0 0x04</pre>
+	<p>E.g.2: To mimic a button press at channel 0x10, address 1, fill in: <pre>0x0F 0xF8 0x10 4 0 1 0 0 0 0x04</pre>
 	</p>
+	<p>Use an injection node to trigger the command. The payload can be anything. <br>
+		The message's payload can be used within the Raw bytes: Use mustache syntax.<br>
+		E.g.: To sync all modules with the current day and time, use:
+		<pre>0x0F 0xFB 00 0x04 0xD8 {{day}} {{hour}} {{minute}} 0 0x04</pre>
+	</p>
+
+
 </script>

@@ -49,12 +49,12 @@
 </script>
 
 <script type="text/x-red" data-help-name="velbus-switch">
-    <p>Velbus Switch node to receive button events.</p>
+    <p>Velbus Switch node to send and listen to button events.</p>
 
     <h3>Setup</h3>
     <p>The velbus serial port is found automatically. You might restart the Node-red service on first deploy.</p>
 
-    <h3>Button Events</h3>
+    <h3>Listening for button events</h3>
     <p>The event message that the Button sends contains the following data in the <b>msg.payload</b>:</p>
     <dl class="message-properties">
         <dt>pressed<span class="property-type">string</span></dt>
@@ -67,7 +67,24 @@
         <dd>When the button is pressed more then 2 seconds.</dd>
     </dl>
 
+    <h3>Sending button events</h3>
+	<p>You can mimic button events by injecting a message like so:
+	<dl class="message-properties">
+        <dt>msg.payload="press"<span class="property-type"></span></dt>
+        <dd>This mimics a short press (press and release). Recommended and easiest for most scenarios.</dd>
 
+		<dt>msg.payload="pressed"<span class="property-type"></span></dt>
+        <dd>This mimics <b>only</b> a press.<br>
+            You are supposed to send a <pre>released</pre> command afterwards.
+            If you want to mimic a long press (> 2s), see below.</dd>
+
+        <dt>msg.payload="released"<span class="property-type"></span></dt>
+        <dd>This mimics an release. Required after a <pre>(long)pressed</pre></dd>
+
+        <dt>msg.payload="longPressed"<span class="property-type"></span></dt>
+        <dd>Mimics a long press. This will only work if you first mimic a <pre>pressed</pre> then a <pre>longPressed</pre>,
+        and finally a <pre>released</pre></dd>
+    </dl>
 
 
 </script>
@@ -82,7 +99,7 @@
 			channel: {value: "", required: true},
 			name: {value: "", required: false}
 		},
-		inputs: 0,
+		inputs: 1,
 		outputs: 1,
 		//outputLabels: 'button pressed',
 		align: 'right',

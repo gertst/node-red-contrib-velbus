@@ -17,7 +17,7 @@ class Velbus extends EventEmitter {
 				//find a Velleman USB module
 				ports.forEach(port => {
 					if (port.manufacturer && port.manufacturer.toLowerCase().indexOf("velleman") > -1) {
-						console.info("FYI: Port found made by Velleman: " + port.comName);
+						console.info("Velbus: Port found made by Velleman: " + port.comName);
 						this.portString = port.comName;
 						this.init();
 					}

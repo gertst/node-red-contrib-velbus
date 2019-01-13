@@ -1,5 +1,6 @@
 let constants = require('../velbus/const');
 let Velbus = require('../velbus/velbus');
+let Packet = require('../velbus/packet');
 
 module.exports = function (RED) {
 	"use strict";
@@ -92,20 +93,65 @@ module.exports = function (RED) {
 			}
 		});
 
+		this.on('input', msg => {
+			let pressed = 0;
+			let released = 0;
+			let longPressed = 0;
+
+			if (msg.payload === "pressed") {
+				pressed = Math.pow(2, this.channel - 1);
+			} else if (msg.payload === "released") {
+				released = Math.pow(2, this.channel - 1);
+			} else if (msg.payload === "longPressed") {
+				longPressed = Math.pow(2, this.channel - 1);
+			} else if (msg.payload === "press") {
+				pressed = Math.pow(2, this.channel - 1);
+				setTimeout(() => {
+					let pressed = 0;
+					let released = Math.pow(2, this.channel - 1);
+					let longPressed = 0;
+
+					let packet = new Packet(
+							this.address,
+							Packet.PRIORITY_HIGH,
+							[constants.COMMAND_PUSH_BUTTON_STATUS, pressed, released, longPressed],
+							false);
+					this.sendPacket(packet);
+				}, 300);
+
+			}
+
+			let packet = new Packet(
+					this.address,
+					Packet.PRIORITY_HIGH,
+					[constants.COMMAND_PUSH_BUTTON_STATUS, pressed, released, longPressed],
+					false);
+
+			this.sendPacket(packet);
+
+
+		});
+
+		this.sendPacket = (packet) => {
+			packet.pack();
+			console.log(`Virtual button: ${packet.toString()}`);
+			if (global.velbus) {
+				let command = "";
+				if (packet.rawPacket[5]) {
+					command = "pressed";
+				} else if (packet.rawPacket[6]) {
+					command = "released";
+				} else if (packet.rawPacket[7]) {
+					command = "long pressed";
+				}
+				this.status({fill: "green", shape: "ring", text: `${this.name} ${command}`});
+				global.velbus.port.write(packet.getRawBuffer());
+			} else {
+				this.status({fill: "red", shape: "ring", text: `No active Velbus: Did you deploy?`});
+			}
+		}
 
 	}
-
-
-	// RED.httpAdmin.get('/velbus/init-velbus/:nodeId', function (req, res, next) {
-	// 	let configNode = RED.nodes.getNode(req.params.nodeId);
-	// 	configNode.velbus.init(false);
-	// 	//initVelbusPort(configNode.serial);
-	// });
-
-	// RED.httpAdmin.get('/velbus/scan-for-modules', function (req, res, next) {
-	// 	velbusConfigNode.velbus.scan();
-	// 	res.end();
-	// });
 
 	RED.httpAdmin.get(`/velbus/scan-for-modules`, function (req, res, next) {
 
@@ -116,19 +162,8 @@ module.exports = function (RED) {
 			res.end("scanning");
 		}
 
-
 	});
 
-	// RED.httpAdmin.get(`/velbus/get-modules`, function (req, res, next) {
-	//
-	// 	//filter only modules that have buttons
-	// 	let modules = global.velbus.modules.filter(module => {
-	// 		return constants.modulesWithButtons.includes(module.name)
-	// 	});
-	//
-	//
-	// 	res.end(JSON.stringify(modules));
-	// });
 
 	RED.httpAdmin.get(`/velbus/get-name-for-button/:address/:channel`, function (req, res, next) {
 
