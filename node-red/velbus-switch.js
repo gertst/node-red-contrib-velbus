@@ -30,7 +30,7 @@ module.exports = function (RED) {
 		});
 
 		global.velbus.on('onReconnecting', error => {
-			this.status({fill: "green", shape: "ring", text: "Reconnected"});
+			this.status({fill: "green", shape: "ring", text: `${this.velbusName} reconnected`});
 		});
 
 
@@ -45,8 +45,6 @@ module.exports = function (RED) {
 				// if (packet.command === constants.COMMAND_MODULE_TYPE) {
 				// 	this.requestButtonName();
 				// }
-
-
 
 
 				if (packet.command === constants.COMMAND_PUSH_BUTTON_STATUS) {
@@ -70,13 +68,29 @@ module.exports = function (RED) {
 		setTimeout(() => global.velbus.requestButtonName(this.address, this.channel), 3000);
 
 		global.velbus.on('onButtonName', (address, channel, name) => {
+			if (address === this.address) {
+				RED.comms.publish("onVelbusButtonName", name);
+			}
+
 			if (address === this.address && channel === this.channel) {
 				this.velbusName = name;
 				this.status({fill: "green", shape: "ring", text: this.velbusName});
 			}
 		});
 
+		global.velbus.on('onModuleFound', (packet, moduleName) => {
 
+			let modulesWithButtons = global.velbus.modules.filter(module => {
+				return constants.modulesWithButtons.includes(module.name)
+			});
+
+			RED.comms.publish("onVelbusModuleFound", modulesWithButtons);
+
+			if (packet.address === this.address && packet.channel === this.channel) {
+				this.velbusName = name;
+				this.status({fill: "green", shape: "ring", text: this.velbusName});
+			}
+		});
 
 
 	}
@@ -93,20 +107,39 @@ module.exports = function (RED) {
 	// 	res.end();
 	// });
 
-	// RED.httpAdmin.get(`/velbus/get-modules/:configNodeId`, function (req, res, next) {
-	// 	let configNode = RED.nodes.getNode(req.params.configNodeId);
-	// 	if (!configNode) {
-	// 		return
-	// 	}
+	RED.httpAdmin.get(`/velbus/scan-for-modules`, function (req, res, next) {
+
+		if (!global.velbus) {
+			res.end("no velbus");
+		} else {
+			global.velbus.scan();
+			res.end("scanning");
+		}
+
+
+	});
+
+	// RED.httpAdmin.get(`/velbus/get-modules`, function (req, res, next) {
 	//
 	// 	//filter only modules that have buttons
-	// 	let modules = configNode.velbus.modules.filter(module => {
+	// 	let modules = global.velbus.modules.filter(module => {
 	// 		return constants.modulesWithButtons.includes(module.name)
 	// 	});
 	//
 	//
 	// 	res.end(JSON.stringify(modules));
 	// });
+
+	RED.httpAdmin.get(`/velbus/get-name-for-button/:address/:channel`, function (req, res, next) {
+
+		if (!global.velbus) {
+			res.end("no velbus");
+		} else {
+			global.velbus.requestButtonName(parseInt(req.params.address), parseInt(req.params.channel));
+			res.end("Getting name ...");
+		}
+	});
+
 
 	RED.nodes.registerType("velbus-switch", VelbusSwitch);
 }

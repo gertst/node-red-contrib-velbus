@@ -1,13 +1,11 @@
 {
   "name": "node-red-contrib-velbus",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": false,
   "scripts": {},
   "node-red": {
     "nodes": {
-      "velbus-switch": "node-red/velbus-switch.js",
-      "velbus-command": "node-red/velbus-command.js",
-      "velbus-raw-bytes": "node-red/velbus-raw-bytes.js"
+      "velbus-switch": "node-red/velbus-switch.js"
     }
   },
   "dependencies": {

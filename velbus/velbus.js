@@ -74,7 +74,7 @@ class Velbus extends EventEmitter {
 				let moduleName = constants.moduleNames["module" + packet.dec2hex(packet.getDataByte(1))];
 				console.info(`Module ${moduleName} found @ ${packet.dec2hex(packet.address)}`);
 				this.modules.push({name: moduleName, address: packet.address});
-
+				this.emit("onModuleFound", packet, moduleName);
 			}
 
 
@@ -147,7 +147,7 @@ class Velbus extends EventEmitter {
 			const dataLength = Math.min(9, databytes.length); //to bugfix the max length
 			for (let i = 2; i < dataLength; i++) {
 				if (databytes[i] !== 255 && !this.buttonNames[packet.address][channel].end) {
-					console.log("char", databytes[i], String.fromCharCode(databytes[i]));
+					//console.log("char", databytes[i], String.fromCharCode(databytes[i]));
 					this.buttonNames[packet.address][channel][index] += String.fromCharCode(databytes[i]);
 				} else {
 					//console.log("char 255: end??");
@@ -155,9 +155,9 @@ class Velbus extends EventEmitter {
 					this.emit("onButtonName", packet.address, channel, this.buttonNames[packet.address][channel].join(""))
 				}
 			}
-			 if (this.buttonNames[packet.address][channel].length === 3) {
+			 //if (this.buttonNames[packet.address][channel].length === 3) {
 			 	this.emit("onButtonName", packet.address, channel, this.buttonNames[packet.address][channel].join(""));
-			 }
+			 //}
 		}
 
 
