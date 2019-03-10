@@ -1,3 +1,6 @@
+/**
+ * Loosely inspired by https://github.com/openhab/openhab2-addons/blob/3268618aaa53812835140d2bde5fc10f57d6d743/addons/binding/org.openhab.binding.velbus/src/main/java/org/openhab/binding/velbus/internal/VelbusBindingConstants.java
+ */
 class Packet {
 
 	static get COMMAND_BUTTON() {
