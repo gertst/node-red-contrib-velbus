@@ -14,6 +14,7 @@ First select the serial port: this should be automatically found.
 Then deploy to save and connect to Velbus.
 From then on you are able to scan for Velbus modules. 
 
+__If you are using this module, please let me know! Curious about your findings/remarks/...__
 
 ## Status
 
