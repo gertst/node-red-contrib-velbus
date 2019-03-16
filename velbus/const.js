@@ -68,7 +68,7 @@ let constants = {
 	},
 
 	modulesWithButtons: [
-		"VMB8PD", "VMB4PD",
+		"VMB8PD", "VMB4PD", "VMBELO"
 	],
 
 
