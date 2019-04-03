@@ -44,11 +44,15 @@ module.exports = function (RED) {
 
 		this.on('input', msg => {
 			let packet = new Packet();
-			this.bytes = mustache.render(this.bytes, msg.payload); //parse mustache tags
+			//console.log("msg.payload:", msg.payload);
+			if (!this.origBytes) {
+				this.origBytes = this.bytes;
+			}
+			this.bytes = mustache.render(this.origBytes, msg.payload); //parse mustache tags
 			packet.setRawBytesAndPack(this.stringToArray(this.bytes));
-			console.log(`sent ${packet.toString()}`);
+			console.log(`sent: ${packet.toString()}`);
 			if (global.velbus) {
-				this.status({fill: "green", shape: "ring", text: `Last command: ${packet.command}`});
+				this.status({fill: "green", shape: "ring", text: `Last command: ${this.bytes}`});
 				global.velbus.port.write(packet.getRawBuffer());
 			} else {
 				this.status({fill: "red", shape: "ring", text: `No active Velbus: Did you deploy?`});
