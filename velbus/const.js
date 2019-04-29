@@ -32,6 +32,7 @@ let constants = {
 	MODULE_TYPE_VMBGP4PIR: 0x2D,
 	MODULE_TYPE_VMB1BLS: 0x2E,
 	MODULE_TYPE_VMBDMIR: 0x2F,
+	MODULE_TYPE_VMBELO: 0x37,
 
 	moduleNames: {
 		module01: "VMB8PD",
@@ -65,6 +66,8 @@ let constants = {
 		module2D: "VMBGP4PIR",
 		module2E: "VMB1BLS",
 		module2F: "VMBDMIR",
+		//...
+		module37: "VMBELO",
 	},
 
 	modulesWithButtons: [

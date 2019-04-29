@@ -1,0 +1,91 @@
+<script type="text/x-red" data-template-name="velbus-connector">
+
+	<div class="form-row">
+        <label for="node-input-type"><i class="fa fa-dot-circle-o"></i> Type</label>
+        <select id="node-input-type" type="text" style="width: 70%">
+	        <option value="usb">USB port</option>
+	        <option value="socket">Network Socket</option>
+        </select>
+    </div>
+
+	<div class="form-row">
+        <label for="node-input-ip"><i class="fa fa-envelope"></i> IP address</label>
+        <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
+            <div style="position: absolute; left: 40px; right: 0px;">
+                <input id="node-input-ip" type="text" style="width:100%">
+            </div>
+        </div>
+    </div>
+
+     <div class="form-row">
+        <label for="node-input-port"><i class="fa fa-tag"></i> Port</label>
+        <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
+            <div style="position: absolute; left: 40px; right: 0px;">
+                <input id="node-input-port" type="text" style="width:100%">
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+</script>
+
+<script type="text/x-red" data-help-name="velbus-switch">
+    <p>Always use a Velbus Connector node to initiate a connection to Velbus</p>
+
+    <h3>There are 2 ways to connect:</h3>
+    <h5>USB</h5>
+    <p>Choose this option if your PI is directly connected to the Velbus USB module. The velbus serial port is found automatically. No further info should be filled in. You might restart the Node-red service on first deploy.</p>
+    <h5>Network Socket</h5>
+    <p>If you are running a Velbus Server, you can connect to it by providing the IP and port below.</p>
+
+
+
+</script>
+
+<script type="text/javascript">
+
+	RED.nodes.registerType('velbus-connector', {
+		category: 'Velbus',
+		color: '#e1444e',
+		defaults: {
+			type: {value: "socket", required: true},
+			ip: {value: "192.168.0.142", required: false},
+			port: {value: "3334", required: false}
+		},
+		inputs: 0,
+		outputs: 0,
+		//outputLabels: 'button pressed',
+		align: 'right',
+		icon: "velbus.png",
+		paletteLabel: "Button",
+		label: function () {
+			if (this.type === "usb") {
+				return this.name || `USB`;
+			} else {
+				return this.name || `Socket connection ${this.ip}:${this.port}`
+			}
+
+		},
+
+
+		oneditsave: function () {
+			//console.info("oneditsave switch");
+			//$.get('velbus/init-velbus-port');
+		},
+
+		oneditprepare: () => {
+
+		}
+
+
+	});
+
+
+
+</script>

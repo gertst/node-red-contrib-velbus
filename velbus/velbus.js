@@ -8,24 +8,28 @@ class Velbus extends EventEmitter {
 
 	constructor(velbusModule) {
 		super();
-		global.velbus = this;
 		this.modules = [];
 		this.buttonNames = [];
 
-		if (!this.port) {
-			SerialPort.list((err, ports) => {
-				//find a Velleman USB module
-				ports.forEach(port => {
-					if (port.manufacturer && port.manufacturer.toLowerCase().indexOf("velleman") > -1) {
-						console.info("Velbus: Port found made by Velleman: " + port.comName);
-						this.portString = port.comName;
-						this.init();
+		if (velbusModule.type === "usb") {
+
+			if (!this.port) {
+				SerialPort.list((err, ports) => {
+					//find a Velleman USB module
+					ports.forEach(port => {
+						if (port.manufacturer && port.manufacturer.toLowerCase().indexOf("velleman") > -1) {
+							console.info("Velbus: USB port found made by Velleman: " + port.comName);
+							this.portString = port.comName;
+							this.init();
+						}
+					});
+					if (!this.portString) {
+						console.warn("No Velbus USB port found ...");
 					}
 				});
-				if (!this.portString) {
-					console.warn("No Velbus port found ...");
-				}
-			});
+			}
+		} else if (velbusModule.type === "socket") {
+			console.log("socket", velbusModule.ip);
 		}
 
 	}
@@ -72,7 +76,7 @@ class Velbus extends EventEmitter {
 				this.setPartName(2, packet);
 			} else if (packet.command === constants.COMMAND_MODULE_TYPE) {
 				let moduleName = constants.moduleNames["module" + packet.dec2hex(packet.getDataByte(1))];
-				console.info(`Module ${moduleName} found @ ${packet.dec2hex(packet.address)}`);
+				console.info(`Module ${moduleName} (type ${packet.dec2hex(packet.getDataByte(1))}) found @ ${packet.dec2hex(packet.address)}`);
 				this.modules.push({name: moduleName, address: packet.address});
 				this.emit("onModuleFound", packet, moduleName);
 			}

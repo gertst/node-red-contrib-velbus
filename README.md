@@ -30,7 +30,7 @@ __If you are using this module, please let me know! Curious about your findings/
 - VMB4PB
 - VMB8PB
 - VMBEL0 (WIP)
-- Other button modules can be easily added, but I don't have them, so I cannot test.
+- Other button modules can be easily added just by filling in the decimal address nr manually, but I don't have them, so I cannot test.
   However, for now, just select them by filling in their Address manually in stead of using the search button.
 
 ##### Dimmers

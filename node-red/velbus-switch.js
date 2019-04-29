@@ -17,7 +17,7 @@ module.exports = function (RED) {
 		var thisNode = this;
 
 		if (!global.velbus) {
-			global.velbus = new Velbus(this);
+			global.velbus = new Velbus(this); 
 		}
 
 
