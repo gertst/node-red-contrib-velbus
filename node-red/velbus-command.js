@@ -19,7 +19,7 @@ module.exports = function (RED) {
 
 		velbusConfigNode = RED.nodes.getNode(config.serial);
 
-		velbusConfigNode.events.on('onSerialError', error => {
+		velbusConfigNode.events.on('onConnectionError', error => {
 			this.status({fill: "red", shape: "ring", text: error.message});
 		});
 
@@ -47,7 +47,7 @@ module.exports = function (RED) {
 			packet.setDataBytes(arr);
 			packet.pack();
 			console.log(`sent ${packet.toString()}`);
-			velbusConfigNode.velbus.port.write(packet.getRawBuffer());
+			velbusConfigNode.velbus.client.write(packet.getRawBuffer());
 
 		});
 

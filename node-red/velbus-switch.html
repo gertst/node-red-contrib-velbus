@@ -1,20 +1,19 @@
 <script type="text/x-red" data-template-name="velbus-switch">
 
+
 	<div class="form-row">
-        <label for="node-input-address"><i class="fa fa-envelope"></i> Address</label>
-        <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
-            <a id="node-input-scan" class="editor-button" style="position: absolute; left: 0px; top: 0px;">
-                <i class="fa fa-search"></i>
-            </a>
-            <div style="position: absolute; left: 40px; right: 0px;">
-                <input id="node-input-address" type="text" style="width:100%">
-            </div>
-        </div>
+        <label for="node-input-connector"><i class="fa fa-tag"></i> Velbus connector</label>
+        <input id="node-input-connector" type="text" style="width:70%">
+    </div>
+
+	<div class="form-row">
+        <label for="node-input-address"><i class="fa fa-envelope"></i> Address (hex)</label>
+        <select id="node-input-address" style="width: 70%"></select>
     </div>
 
      <div class="form-row">
         <label for="node-input-channel"><i class="fa fa-dot-circle-o"></i> Channel</label>
-        <select id="node-input-channel" type="text" style="width: 70%">
+        <select id="node-input-channel" style="width: 70%">
 	        <option value="1">Button 1</option>
 	        <option value="2">Button 2</option>
 	        <option value="3">Button 3</option>
@@ -23,6 +22,30 @@
 	        <option value="6">Button 6</option>
 	        <option value="7">Button 7</option>
 	        <option value="8">Button 8</option>
+	        <option value="9">Button 9</option>
+	        <option value="10">Button 10</option>
+	        <option value="11">Button 11</option>
+	        <option value="12">Button 12</option>
+	        <option value="13">Button 13</option>
+	        <option value="14">Button 14</option>
+	        <option value="15">Button 15</option>
+	        <option value="16">Button 16</option>
+	        <option value="17">Button 17</option>
+	        <option value="18">Button 18</option>
+	        <option value="19">Button 19</option>
+	        <option value="20">Button 20</option>
+	        <option value="21">Button 21</option>
+	        <option value="22">Button 22</option>
+	        <option value="23">Button 23</option>
+	        <option value="24">Button 24</option>
+	        <option value="25">Button 25</option>
+	        <option value="26">Button 26</option>
+	        <option value="27">Button 27</option>
+	        <option value="28">Button 28</option>
+	        <option value="29">Button 29</option>
+	        <option value="30">Button 30</option>
+	        <option value="31">Button 31</option>
+	        <option value="32">Button 32</option>
         </select>
     </div>
 
@@ -34,9 +57,15 @@
                 <i class="fa fa-search"></i>
             </a>
             <div style="position: absolute; left: 40px; right: 0px;">
-                <input id="node-input-name" type="text" style="width:100%">
+                <input id="node-input-name" class="node-input-name-switch" type="text" style="width:100%">
             </div>
         </div>
+    </div>
+
+
+	<div class="form-row on-status" style="display:none; color: darkorange">
+        <span><i class="fa fa-info-circle"></i></span>
+        <span class="on-status-text">Status text here</span>
     </div>
 
 
@@ -45,8 +74,134 @@
 
 
 
+</script>
+
+<script type="text/javascript">
+
+	RED.nodes.registerType('velbus-switch', {
+		category: 'Velbus',
+		color: '#e1444e',
+		defaults: {
+			connector: {value: "", type: "velbus-connector"},
+			address: {value: "", required: true},
+			channel: {value: "", required: true},
+			name: {value: "", required: false}
+		},
+		inputs: 1,
+		outputs: 3,
+		outputLabels: ["Short pressed", "Long pressed", "Details"],
+		align: 'right',
+		icon: "velbus.png",
+		paletteLabel: "Button",
+
+		label() {
+			if (this.address && this.channel) {
+				console.log("this.address:", this.address, parseInt(this.address).toString(16));
+				return this.name || `Button @ ${parseInt(this.address).toString(16).toUpperCase()}, ch ${this.channel}`;
+			} else {
+				return this.name || 'Button'
+			}
+
+		},
+
+
+		oneditsave() {
+			console.info("oneditsave switch @", this.address, "ch", this.channel);
+			//$.get('velbus/init-velbus-port');
+		},
+
+		oneditprepare() {
+
+			if (this.address && this.channel) {
+				$.get("velbus/get-modules").then(modules => {
+
+					if (modules.length > 0) {
+						setModules(JSON.parse(modules), this.address);
+					}
+				});
+			}
+
+			// $("#node-input-connector").change(() => {
+			// 	console.log("chnge");
+			// });
+
+
+
+			// $("#node-input-scan").click(() => {
+			// 	searchAndSelectModule();
+			// 	// if ($('#node-input-address').prop("tagName") === "INPUT") {
+			// 	// 	searchAndSelectModule();
+			// 	// } else {
+			// 	// 	manualSwitchModule();
+			// 	// }
+			//
+			// });
+
+
+			$("#node-input-get-label").click(() => {
+				const address = parseInt($('#node-input-address').val(), 16);
+				const channel = parseInt($('#node-input-channel').val(), 16);
+				if (address && channel) {
+					const url = `velbus/get-name-for-button/${address}/${channel}`;
+					console.log("url", url);
+					$.get(url).then(msg => {
+						console.log(msg);
+						if (msg === "no velbus") {
+							RED.notify("Deploy first to connect to Velbus ...", "error");
+						}
+					});
+				} else {
+					RED.notify("Add an Address and Channel first.", "error");
+				}
+			});
+		},
+
+
+	});
+
+	RED.comms.subscribe("onError", (text) => {
+		console.log("onError", text);
+		$(".on-status-text").text(text);
+		$(".on-status").show();
+		RED.notify(text, "error");
+	});
+
+	RED.comms.subscribe("onLog", (key, text) => {
+		console.log("onLog", key, text);
+		$(".on-status-text").text(text);
+		$(".on-status").show();
+		RED.notify(text, "info");
+	});
+
+	RED.comms.subscribe("onVelbusModuleFound", (key, modules) => {
+		console.log("subscribe onVelbusModuleFound", this);
+		setModules(modules, this.address);
+	});
+
+
+	function setModules(modules, prevAddress) {
+
+		// RESET OPTIONS
+		$('#node-input-address').empty();
+
+		// SET MODULES AS OPTIONS
+		modules.forEach(function (module) {
+			$('#node-input-address').append(`<option value="${module.address}">${module.name} @ ${module.address.toString(16).toUpperCase()}</option>`);
+		});
+
+		// RESET CURRENT VALUE
+		$('#node-input-address').val(prevAddress);
+	}
+
+
+	RED.comms.subscribe("onVelbusButtonName ", (key, value, b, c) => {
+		console.log("onVelbusButtonName key, value, b, c", key, value, b, c);
+		$('#node-input-name').val(value)
+	});
+
 
 </script>
+
 
 <script type="text/x-red" data-help-name="velbus-switch">
     <p>Velbus Switch node to send and listen to button events.</p>
@@ -87,111 +242,6 @@
         and finally a <pre>released</pre></dd>
     </dl>
 
-
-</script>
-
-<script type="text/javascript">
-
-	RED.nodes.registerType('velbus-switch', {
-		category: 'Velbus',
-		color: '#e1444e',
-		defaults: {
-			address: {value: "", required: true},
-			channel: {value: "", required: true},
-			name: {value: "", required: false}
-		},
-		inputs: 1,
-		outputs: 1,
-		//outputLabels: 'button pressed',
-		align: 'right',
-		icon: "velbus.png",
-		paletteLabel: "Button",
-		label: function () {
-			if (this.address && this.channel) {
-				return this.name || `Button @ ${this.address}, ch ${this.channel}`;
-			} else {
-				return this.name || 'Button'
-			}
-
-		},
-
-
-		oneditsave: function () {
-			console.info("oneditsave switch");
-			//$.get('velbus/init-velbus-port');
-		},
-
-		oneditprepare: () => {
-
-			function searchAndSelectModule() {
-
-				$.get(`velbus/scan-for-modules`).then(msg => {
-					if (msg === "no velbus") {
-						RED.notify("Deploy first to connect to Velbus ...", "error");
-					} else {
-						RED.notify("Scanning for Velbus modules ...", "info");
-					}
-				});
-
-
-			}
-
-			function manualSwitchModule() {
-				let current = $('#node-input-address').val();
-				$('#node-input-address').replaceWith('<input type="text" id="node-input-address" style="width: 100%"/>');
-				$('#node-input-address').val(current);
-			}
-
-			$("#node-input-scan").click(() => {
-
-				if ($('#node-input-address').prop("tagName") === "INPUT") {
-					searchAndSelectModule();
-				} else {
-					manualSwitchModule();
-				}
-
-			});
-
-
-			$("#node-input-get-label").click(() => {
-				const address = $('#node-input-address').val();
-				const channel = $('#node-input-channel').val();
-				if (address && channel) {
-					const url = `velbus/get-name-for-button/${address}/${channel}`;
-					console.log("url", url);
-					$.get(url).then(msg => {
-						if (msg === "no velbus") {
-							RED.notify("Deploy first to connect to Velbus ...", "error");
-						}
-					});
-				} else {
-					RED.notify("Add an Adress and Channel first.", "error");
-				}
-			});
-		}
-
-
-	});
-
-	RED.comms.subscribe("onVelbusModuleFound", (key, modules) => {
-
-		let current = $('#node-input-address').val();
-
-		$('#node-input-address').replaceWith('<select id="node-input-address" type="text" style="width: 100%"></select>');
-
-		// RESET OPTIONS
-		$('#node-input-address').empty();
-
-		// SET MODULES AS OPTIONS
-		modules.forEach(function (module) {
-			$('#node-input-address').append(`<option value="${module.address}">${module.name} @ ${module.address}</option>`);
-		});
-
-		// SELECT CURRENT VALUE
-		$('#node-input-address').val(current);
-	});
-
-	RED.comms.subscribe("onVelbusButtonName", (key, value) => $('#node-input-name').val(value));
 
 
 </script>

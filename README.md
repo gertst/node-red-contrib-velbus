@@ -23,28 +23,27 @@ __If you are using this module, please let me know! Curious about your findings/
 - 2019/01/05 
 	- Button node proof of concept works, but not without issues.
 	- Reconnect to Velbus works
+- 2019/05/02
+	- BREAKING change: Address in Button node now works with HEX values
+	- BREAKING change: you can now choose to connect using USB (as before) or using Socket (new)
+	- Added module VMBELO	
 
 ## Implemented Velbus modules:
 
-##### Buttons
-- VMB4PB
-- VMB8PB
-- VMBEL0 (WIP)
-- Other button modules can be easily added just by filling in the decimal address nr manually, but I don't have them, so I cannot test.
-  However, for now, just select them by filling in their Address manually in stead of using the search button.
+##### Supported input modules
+Next modules can be controlled by simulating button presses.
+- VMB4PB (tested)
+- VMB8PB (tested)
+- VMBELO (tested)
+- Other probably working but not tested: "VMB2PBN", "VMB6IN", "VMB6PBN", "VMB7IN", "VMB8IR", "VMB8PB", "VMB8PBU", "VMBPIRC", "VMBPIRM"
+- However, all button modules can be easily added just by filling in the decimal address nr manually in stead of using the search button.
 
 ##### Dimmers
-- to do: VMBDMI
+- to do: VMBDMI (for now use a connected input module to control dimmers)
 
 ##### Relays
-- to do: VMB4RY
+- to do: VMB4RY (for now use a connected input module to control relays)
 
-## Todo
-
-- ☒ auto scan for Velbus serial port
-- ☐ show real names of found modules (WIP)
-- ☒ auto-reconnect serial port
-- ☐ consts: add friendly names of commands and show commands
 
 ## Example scripts
 
@@ -56,5 +55,5 @@ __If you are using this module, please let me know! Curious about your findings/
  running, I can see the remaining time on the display. How cool is that!? ;-)
  For now I have a quick and dirty way of doing it with the "Raw bytes" node I've made, but I hope to find some time soon
  to do this properly with a new node type.
- Here are the nodes: 
+ Here are the nodes to set this up: 
 `[{"id":"14ff119a.8a784e","type":"inject","z":"b6182f53.5ad4f","name":"","topic":"","payload":"","payloadType":"date","repeat":"5","crontab":"","once":false,"onceDelay":"","x":110,"y":80,"wires":[["c26a696c.1dd9e8"]]},{"id":"c26a696c.1dd9e8","type":"http request","z":"b6182f53.5ad4f","name":"Assistant Timers","method":"GET","ret":"obj","url":"http://192.168.0.100:8008/setup/assistant/alarms","tls":"","x":280,"y":80,"wires":[["f32030e9.51deb"]]},{"id":"45e86527.b504ec","type":"debug","z":"b6182f53.5ad4f","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","x":610,"y":60,"wires":[]},{"id":"f32030e9.51deb","type":"function","z":"b6182f53.5ad4f","name":"Memo Text","func":"\nif (msg.payload.timer.length > 0) {\n    msg.payload.times = [];\n    msg.payload.timer.forEach((timer => {\n        \n        const now = new Date().getTime();\n        let msLeft;\n        let status;\n        if (timer.status === 1) { //running\n            status = \"running\";\n            msLeft =  timer.fire_time - now;\n            msLeft = Math.max(0, msLeft);\n        } else if (timer.status === 0) { //pause\n            status = \"paused\";\n            msLeft= timer.remaining_duration;\n        } else {\n            status = \"triggered\";\n            msLeft =  O;\n        }\n        let formattedTime = new Date(msLeft).toISOString()\n        formattedTime = formattedTime.substr(15,4)\n        \n        msg.payload.times.push({timeLeft: formattedTime, status: status})\n        msg.payload.nrOfDataBytes = 8;\n        let bytes = stringToDataBytes(formattedTime);\n        msg.payload.dataBytes = \"0xAC 0xFF 0 \" + bytes + \" 0\";\n    }));\n}\nif (!msg.payload.times) {\n    msg.payload.nrOfDataBytes = 8;\n    msg.payload.dataBytes = \"0xAC 0xFF 0 0 0 0 0 0\";\n} else {\n    \n}\nreturn msg\n\n\n\nfunction stringToDataBytes(s) {\n    let r = [];\n    for (let i=0; i<s.length; i++) {\n        r.push(s.charCodeAt(i))\n    }\n    return r.join(\" \");\n}","outputs":1,"noerr":0,"x":450,"y":80,"wires":[["45e86527.b504ec","f084e48c.a94f48"]]},{"id":"f084e48c.a94f48","type":"velbus-raw-bytes","z":"b6182f53.5ad4f","name":"Memo Text","bytes":"0x0F 0xFB 0x11 {{nrOfDataBytes}} {{dataBytes}} FF 0x04","x":610,"y":100,"wires":[]}]` 

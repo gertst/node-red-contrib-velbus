@@ -1,91 +1,53 @@
-<script type="text/x-red" data-template-name="velbus-connector">
-
-	<div class="form-row">
-        <label for="node-input-type"><i class="fa fa-dot-circle-o"></i> Type</label>
-        <select id="node-input-type" type="text" style="width: 70%">
-	        <option value="usb">USB port</option>
-	        <option value="socket">Network Socket</option>
-        </select>
-    </div>
-
-	<div class="form-row">
-        <label for="node-input-ip"><i class="fa fa-envelope"></i> IP address</label>
-        <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
-            <div style="position: absolute; left: 40px; right: 0px;">
-                <input id="node-input-ip" type="text" style="width:100%">
-            </div>
-        </div>
-    </div>
-
-     <div class="form-row">
-        <label for="node-input-port"><i class="fa fa-tag"></i> Port</label>
-        <div style="display: inline-block; position: relative; width: 70%; height: 20px;">
-            <div style="position: absolute; left: 40px; right: 0px;">
-                <input id="node-input-port" type="text" style="width:100%">
-            </div>
-        </div>
-    </div>
-
-
-
-
-
-
-
-
-</script>
-
-<script type="text/x-red" data-help-name="velbus-switch">
-    <p>Always use a Velbus Connector node to initiate a connection to Velbus</p>
-
-    <h3>There are 2 ways to connect:</h3>
-    <h5>USB</h5>
-    <p>Choose this option if your PI is directly connected to the Velbus USB module. The velbus serial port is found automatically. No further info should be filled in. You might restart the Node-red service on first deploy.</p>
-    <h5>Network Socket</h5>
-    <p>If you are running a Velbus Server, you can connect to it by providing the IP and port below.</p>
-
-
-
-</script>
-
 <script type="text/javascript">
 
 	RED.nodes.registerType('velbus-connector', {
-		category: 'Velbus',
+		category: 'config',
 		color: '#e1444e',
 		defaults: {
-			type: {value: "socket", required: true},
-			ip: {value: "192.168.0.142", required: false},
-			port: {value: "3334", required: false}
+			ip: {value: "raspberrypi.local", required: false},
+			port: {value: 6000, required: false, validate:RED.validators.number()},
 		},
 		inputs: 0,
 		outputs: 0,
 		//outputLabels: 'button pressed',
-		align: 'right',
+		align: 'left',
 		icon: "velbus.png",
-		paletteLabel: "Button",
+		paletteLabel: "Connector",
 		label: function () {
-			if (this.type === "usb") {
-				return this.name || `USB`;
-			} else {
-				return this.name || `Socket connection ${this.ip}:${this.port}`
-			}
-
-		},
-
-
-		oneditsave: function () {
-			//console.info("oneditsave switch");
-			//$.get('velbus/init-velbus-port');
+			return this.name || `${this.ip}:${this.port}`
 		},
 
 		oneditprepare: () => {
 
-		}
+		},
 
+		oneditsave: function () {
+			// console.log("oneditprepare velbus-connector");
+			let ip = $("#node-config-input-ip").val();
+			let port = $("#node-config-input-port").val();
+			$.get(`velbus/init/${ip}/${port}`);
+		},
 
 	});
 
+</script>
 
+<script type="text/html" data-template-name="velbus-connector">
 
+	<div class="form-row">
+        <label for="node-config-input-ip"><i class="fa fa-envelope"></i> Velbus server IP address or domain name</label>
+        <input id="node-config-input-ip" type="text">
+    </div>
+
+     <div class="form-row">
+        <label for="node-config-input-port"><i class="fa fa-circle-o"></i> Port</label>
+        <input id="node-config-input-port" type="text">
+    </div>
+
+</script>
+
+<script type="text/x-red" data-help-name="velbus-connector">
+    <p>You need a Velbus Server for this to work. You can connect to it by providing the IP (or domain) and port.</p>
+    <p>Example: Use Jeroens VelServ: <a href="https://forum.velbus.eu/t/how-to-install-and-run-velserv-a-velbus-tcp-gateway/15422">More info</a></p>
+    <p>A typical value is: raspberrypi.local</p>
 </script>

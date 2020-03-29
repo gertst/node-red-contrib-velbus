@@ -10,88 +10,107 @@ module.exports = function (RED) {
 
 		RED.nodes.createNode(this, config);
 
+		let thisNode = this;
+
 		this.name = config.name;
+		this.connector = config.connector;
 		this.address = parseInt(config.address);
+
 		this.channel = parseInt(config.channel);
 
-		var thisNode = this;
+		setTimeout(() => {
+			this.velbusName = "";
 
-		if (!global.velbus) {
-			global.velbus = new Velbus(this); 
-		}
-
-
-		this.velbusName = "";
-
-		this.status({fill: "green", shape: "ring", text: `Waiting ...`});
+			this.status({fill: "green", shape: "ring", text: `Waiting ...`});
 
 
-		global.velbus.on('onSerialError', error => {
-			this.status({fill: "red", shape: "ring", text: error.message});
-		});
+			//console.log("velbus switch timeout", global.velbus);
 
-		global.velbus.on('onReconnecting', error => {
-			this.status({fill: "green", shape: "ring", text: `${this.velbusName} reconnected`});
-		});
-
-
-		global.velbus.on('onSerialPacket', packet => {
-
-			if (packet.address === this.address) {
-
-				//this.status({fill: "green", shape: "ring", text: `Last command: ${packet.command}`});
-
-				//console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
-
-				// if (packet.command === constants.COMMAND_MODULE_TYPE) {
-				// 	this.requestButtonName();
-				// }
-
-
-				if (packet.command === constants.COMMAND_PUSH_BUTTON_STATUS) {
-					//console.log(`pushed ${packet.getRawDataAsString()}`);
-					const databytes = packet.getDataBytes();
-					if (databytes[1] === Math.pow(2, this.channel - 1)) {
-						this.status({fill: "green", shape: "ring", text: `${this.velbusName} Pressed`});
-						thisNode.send({payload: "pressed"});
-					} else if (databytes[2] === Math.pow(2, this.channel - 1)) {
-						this.status({fill: "green", shape: "ring", text: `${this.velbusName} Released`});
-						thisNode.send({payload: "released"});
-					} else if (databytes[3] === Math.pow(2, this.channel - 1)) {
-						this.status({fill: "green", shape: "ring", text: `${this.velbusName} Long pressed`});
-						thisNode.send({payload: "longPressed"});
-					}
-				}
+			if (!global.velbus) {
+				this.status({fill: "orange", shape: "dot", text: `No Velbus connector node found: Add one first!`});
+				return
 			}
 
-		});
-
-		setTimeout(() => global.velbus.requestButtonName(this.address, this.channel), 3000);
-
-		global.velbus.on('onButtonName', (address, channel, name) => {
-			if (address === this.address) {
-				RED.comms.publish("onVelbusButtonName", name);
-			}
-
-			if (address === this.address && channel === this.channel) {
-				this.velbusName = name;
-				this.status({fill: "green", shape: "ring", text: this.velbusName});
-			}
-		});
-
-		global.velbus.on('onModuleFound', (packet, moduleName) => {
-
-			let modulesWithButtons = global.velbus.modules.filter(module => {
-				return constants.modulesWithButtons.includes(module.name)
+			global.velbus.on('onConnectionError', error => {
+				this.status({fill: "red", shape: "dot", text: error.message});
 			});
 
-			RED.comms.publish("onVelbusModuleFound", modulesWithButtons);
+			global.velbus.on('onReconnecting', error => {
+				this.status({fill: "green", shape: "dot", text: `${this.velbusName} reconnected`});
+			});
 
-			if (packet.address === this.address && packet.channel === this.channel) {
-				this.velbusName = name;
-				this.status({fill: "green", shape: "ring", text: this.velbusName});
-			}
-		});
+
+			global.velbus.on('onSerialPacket', packet => {
+
+				if (packet.address === this.address) {
+
+					//this.status({fill: "green", shape: "ring", text: `Last command: ${packet.command}`});
+
+					//console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
+
+					// if (packet.command === constants.COMMAND_MODULE_TYPE) {
+					// 	this.requestButtonName();
+					// }
+
+
+					if (packet.command === constants.COMMAND_PUSH_BUTTON_STATUS) {
+						//console.log(`pushed ${packet.getRawDataAsString()}`);
+						const databytes = packet.getDataBytes();
+						if (databytes[1] === Math.pow(2, this.channel - 1)) {
+							this.status({fill: "green", shape: "dot", text: `${this.velbusName} Pressed`});
+							this.clickState = "pressed";
+							thisNode.send([null, null, {payload: "pressed"}]);
+						} else if (databytes[2] === Math.pow(2, this.channel - 1)) {
+							this.status({fill: "green", shape: "dot", text: `${this.velbusName} Released`});
+							thisNode.send([
+								this.clickState === "pressed" ? {payload: "pressed"} : null,
+								null,
+								{payload: "released"}
+							]);
+						} else if (databytes[3] === Math.pow(2, this.channel - 1)) {
+							this.status({fill: "green", shape: "dot", text: `${this.velbusName} Long pressed`});
+							this.clickState = "longPressed";
+							thisNode.send([
+								null,
+								{payload: "longPressed"},
+								{payload: "longPressed"}
+							]);
+						}
+					}
+				}
+
+			});
+
+			// global.velbus.on('onButtonName', (address, channel, name) => {
+			// 	console.log("onButtonName", channel, name);
+			// 	if (address === this.address) {
+			// 		RED.comms.publish("onVelbusButtonName", address, channel, name);
+			// 	}
+			//
+			// 	if (address === this.address && channel === this.channel) {
+			// 		this.velbusName = name;
+			// 		this.status({fill: "green", shape: "dot", text: this.velbusName});
+			// 	}
+			// });
+
+			global.velbus.on('onModuleFound', (packet, moduleName) => {
+				//console.log("SWITCH - onModuleFound", moduleName);
+				let modulesWithButtons = global.velbus.modules.filter(module => {
+					return constants.modulesWithButtons.includes(module.name)
+				});
+
+				//RED.comms.publish("onVelbusModuleFound", modulesWithButtons);
+
+				if (packet.address === this.address && packet.channel === this.channel) {
+					this.velbusName = name;
+					this.status({fill: "green", shape: "ring", text: this.velbusName});
+				}
+			});
+
+			setTimeout(() => global.velbus.requestButtonName(this.address, this.channel), 3000);
+
+		}, 200);//end timeout
+
 
 		this.on('input', msg => {
 			let pressed = 0;
@@ -145,7 +164,7 @@ module.exports = function (RED) {
 					command = "long pressed";
 				}
 				this.status({fill: "green", shape: "ring", text: `${this.name} ${command}`});
-				global.velbus.port.write(packet.getRawBuffer());
+				global.velbus.client.write(packet.getRawBuffer());
 			} else {
 				this.status({fill: "red", shape: "ring", text: `No active Velbus: Did you deploy?`});
 			}
@@ -164,6 +183,18 @@ module.exports = function (RED) {
 
 	});
 
+	RED.httpAdmin.get(`/velbus/get-modules`, function (req, res, next) {
+
+		if (global.velbus && global.velbus.modules) {
+			res.end(JSON.stringify(global.velbus.modules));
+		} else {
+			res.end([]);
+		}
+
+	});
+
+
+
 
 	RED.httpAdmin.get(`/velbus/get-name-for-button/:address/:channel`, function (req, res, next) {
 
@@ -174,7 +205,6 @@ module.exports = function (RED) {
 			res.end("Getting name ...");
 		}
 	});
-
 
 	RED.nodes.registerType("velbus-switch", VelbusSwitch);
 }

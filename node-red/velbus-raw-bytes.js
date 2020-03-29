@@ -18,7 +18,7 @@ module.exports = function (RED) {
 			global.velbus = new Velbus(this);
 		}
 
-		global.velbus.on('onSerialError', error => {
+		global.velbus.on('onConnectionError', error => {
 			this.status({fill: "red", shape: "ring", text: error.message});
 		});
 
@@ -53,7 +53,7 @@ module.exports = function (RED) {
 			console.log(`sent: ${packet.toString()}`);
 			if (global.velbus) {
 				this.status({fill: "green", shape: "ring", text: `Last command: ${this.bytes}`});
-				global.velbus.port.write(packet.getRawBuffer());
+				global.velbus.client.write(packet.getRawBuffer());
 			} else {
 				this.status({fill: "red", shape: "ring", text: `No active Velbus: Did you deploy?`});
 			}
