@@ -6,14 +6,14 @@
         <input id="node-input-connector" type="text" style="width:70%">
     </div>
 
-	<!--<div class="form-row">-->
-        <!--<label for="node-input-outputs"><i class="fa fa-hand-pointer"></i> Outputs</label>-->
-        <!--<select id="node-input-outputs" style="width: 70%">-->
-            <!--<option value="1">Message on short press only</option>-->
-            <!--<option value="2" selected="selected">Message on short and long press</option>-->
-            <!--<option value="3">Message on short press, long press and detailed output</option>-->
-		<!--</select>-->
-    <!--</div>-->
+	<div class="form-row">
+        <label for="node-input-outputs"><i class="fa fa-hand-pointer"></i> Outputs</label>
+        <select id="node-input-outputs" style="width: 70%">
+            <option value="1" selected="selected">Message on short press only</option>
+            <option value="2">Message on short and long press</option>
+            <option value="3">Message on short press, long press and detailed output</option>
+		</select>
+    </div>
 
 	<div class="form-row">
         <label for="node-input-address"><i class="fa fa-envelope"></i> Address</label>
@@ -85,7 +85,7 @@
 		category: 'Velbus',
 		color: '#e1444e',
 		defaults: {
-			// outputs: 3,
+			outputs: 1,
 			connector: {value: "", type: "velbus-connector"},
 			address: {value: "", required: true},
 			channel: {value: "", required: true},

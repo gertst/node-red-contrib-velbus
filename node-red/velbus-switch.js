@@ -79,7 +79,7 @@ module.exports = function (RED) {
 									{payload: "released"}
 								]);
 							} else if (this.outputs === "1") {
-								thisNode.send(this.clickState === "pressed" ? {payload: "pressed"} : null);
+								thisNode.send([this.clickState === "pressed" ? {payload: "pressed"} : null]);
 							}
 
 						} else if (databytes[3] === Math.pow(2, this.channel - 1)) {
