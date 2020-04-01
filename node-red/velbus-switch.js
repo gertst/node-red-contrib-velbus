@@ -15,6 +15,7 @@ module.exports = function (RED) {
 		this.name = config.name;
 		this.connector = config.connector;
 		this.address = parseInt(config.address);
+		this.outputs = parseInt(config.outputs);
 
 		this.channel = parseInt(config.channel);
 
@@ -52,7 +53,7 @@ module.exports = function (RED) {
 					// 	this.requestButtonName();
 					// }
 
-
+					console.log("out:", this.outputs, typeof(this.outputs));
 					if (packet.command === constants.COMMAND_PUSH_BUTTON_STATUS) {
 						//console.log(`pushed ${packet.getRawDataAsString()}`);
 						const databytes = packet.getDataBytes();
@@ -60,25 +61,25 @@ module.exports = function (RED) {
 							this.status({
 								fill: "green",
 								shape: "dot",
-								text: `${this.velbusName} Pressed @ ${new Date().toLocaleDateString() - new Date().toLocaleTimeString()}`
+								text: `${this.velbusName} Pressed @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
 							});
 							this.clickState = "pressed";
-							if (this.outputs === "3") {
+							if (this.outputs === 3) {
 								thisNode.send([null, null, {payload: "pressed"}]);
 							}
 						} else if (databytes[2] === Math.pow(2, this.channel - 1)) {
 							this.status({
 								fill: "green",
 								shape: "dot",
-								text: `${this.velbusName} Released @ ${new Date().toLocaleDateString() - new Date().toLocaleTimeString()}`
+								text: `${this.velbusName} Released @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
 							});
-							if (this.outputs === "3") {
+							if (this.outputs === 3) {
 								thisNode.send([
 									this.clickState === "pressed" ? {payload: "pressed"} : null,
 									null,
 									{payload: "released"}
 								]);
-							} else if (this.outputs === "1") {
+							} else if (this.outputs === 1) {
 								thisNode.send([this.clickState === "pressed" ? {payload: "pressed"} : null]);
 							}
 
@@ -86,16 +87,16 @@ module.exports = function (RED) {
 							this.status({
 								fill: "green",
 								shape: "dot",
-								text: `${this.velbusName} Long pressed @ ${new Date().toLocaleDateString() - new Date().toLocaleTimeString()}`
+								text: `${this.velbusName} Long pressed @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
 							});
 							this.clickState = "longPressed";
-							if (this.outputs === "3") {
+							if (this.outputs === 3) {
 								thisNode.send([
 									null,
 									{payload: "longPressed"},
 									{payload: "longPressed"}
 								]);
-							} else if (this.outputs === "2") {
+							} else if (this.outputs === 2) {
 								thisNode.send([
 									null,
 									{payload: "longPressed"}
