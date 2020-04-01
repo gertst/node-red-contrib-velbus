@@ -58,7 +58,7 @@ class Velbus extends EventEmitter {
 			packet.setRawBytesAndPack(data);
 
 			if (packet.rawPacket[0] === Packet.STX && packet.rawPacket.length >= 5) {
-				console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
+				//console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
 
 
 				if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
@@ -68,10 +68,20 @@ class Velbus extends EventEmitter {
 				} else if (packet.command === constants.COMMAND_MODULE_NAME_PART3) {
 					this.setPartName(2, packet);
 				} else if (packet.command === constants.COMMAND_MODULE_TYPE && packet.rawPacket.length >= 10) {
-					let moduleName = constants.moduleNames["module" + packet.dec2hex(packet.getDataByte(1)).toUpperCase()];
+					let metaData = constants.moduleMetaData.find(i => i.type === packet.getDataByte(1));
 					// console.info(`Module ${moduleName} (type ${packet.dec2hex(packet.getDataByte(1))}) found @ ${packet.dec2hex(packet.address)}`);
 					// this.emit("onStatus", `Module ${moduleName} (type ${packet.dec2hex(packet.getDataByte(1))}) found @ ${packet.dec2hex(packet.address)} - #found: ${this.modules.length}`);
-					this.modules.push({name: moduleName, address: packet.address});
+					if (metaData) {
+						this.modules.push({
+							name: metaData.name,
+							address: packet.address,
+							hasInput: metaData.hasInput,
+							nrOfChannels: metaData.nrOfChannels,
+							requestNameBinary: metaData.requestNameBinary
+						});
+					} else {
+						console.log("WARNING: Module of type " + packet.getDataByte(1) + " is unknown.");
+					}
 					// this.emit("onModuleFound", packet, moduleName);
 					// this.config.RED.comms.publish("onVelbusModuleFound", this.modules);
 				}
@@ -123,7 +133,7 @@ class Velbus extends EventEmitter {
 			//sent found module after 4 secs
 			setTimeout(() => {
 				this.config.RED.comms.publish("onVelbusModuleFound", this.modules);
-			}, 4000);
+			}, 6000);
 		} else {
 			this.config.RED.comms.publish("onError", "No Velbus serial port found - not able to scan for modules.");
 		}
@@ -137,9 +147,15 @@ class Velbus extends EventEmitter {
 	}
 
 	requestButtonName(address, channel) {
-		console.log("requestButtonName", (address), (channel));
+		console.log("requestButtonName", address, channel);
+		let channelBit;
+		if (this.modules.find((item => item.address === address)).requestNameBinary) {
+			channelBit = channel
+		} else {
+			channelBit = Math.pow(2, channel - 1);
+		}
 		let getModuleLabel = new Packet(address, Packet.PRIORITY_LOW,
-				[constants.COMMAND_MODULE_NAME_REQUEST, Math.pow(2, channel - 1)], false);
+				[constants.COMMAND_MODULE_NAME_REQUEST, channelBit], false);
 		if (this.client) {
 			this.client.write(getModuleLabel.getRawBuffer());
 		} else {
@@ -150,7 +166,7 @@ class Velbus extends EventEmitter {
 
 	setPartName(index, packet) {
 
-		console.log("setPartName", index);
+		// console.log("setPartName", index);
 
 		// VelbusModule
 		// velbusModule = velbusModules.get(address);
@@ -166,41 +182,46 @@ class Velbus extends EventEmitter {
 
 		//if (databytes[3] === 255) return;
 		const databytes = packet.getDataBytes();
-		const channel = this.channelFromByte(databytes[1]);
+		// const channel = this.channelFromByte(databytes[1]);
+		let channel;
+		if (this.modules.find((item => item.address === packet.address)).requestNameBinary) {
+			channel = databytes[1];
+		} else {
+			channel = this.channelFromByte(databytes[1])
+		}
 
 		if (!this.buttonNames[packet.address]) {
 			this.buttonNames[packet.address] = [];
 		}
 		if (!this.buttonNames[packet.address][channel]) {
-			this.buttonNames[packet.address][channel] = [];
+			this.buttonNames[packet.address][channel] = ["","",""];
 		}
 
-		// if (index === 0) {
-		// 	this.buttonNames[packet.address][channel] = [];
-		// }
+
 
 		//if (!this.buttonNames[packet.address][channel].end) {
 		this.buttonNames[packet.address][channel][index] = "";
 		//const dataLength = Math.min(9, databytes.length); //to bugfix the max length
 		//console.log("databytes.length", databytes.length);
-		for (let i = 1; i < databytes.length; i++) {
+		for (let i = 2; i < databytes.length; i++) {
 			if (databytes[i] !== 255) {
-				//console.log("char", databytes[i], String.fromCharCode(databytes[i]));
 				this.buttonNames[packet.address][channel][index] += String.fromCharCode(databytes[i]);
+				console.log(`this.buttonNames[${packet.address}][${channel}]`, this.buttonNames[packet.address][channel]);
 			} else {
 				//console.log("char 255: end??");
 				//this.buttonNames[packet.address][channel].end = true;
 				//this.emit("onButtonName", packet.address, channel, this.buttonNames[packet.address][channel].join(""))
 			}
 		}
-		//if (this.buttonNames[packet.address][channel].length === 3) {
-		//this.emit("onButtonName", packet.address, channel, this.buttonNames[packet.address][channel].join(""));
-		if (index === 2) {
-			this.config.RED.comms.publish("onVelbusButtonName", packet.address, channel, this.buttonNames[packet.address][channel].join(""));
-			console.log("name:", this.buttonNames[packet.address][channel].join(""));
-		}
-		//}
-		//}
+		// //last part? [yes]
+		// if (index === 2) {
+		// 	const label = this.buttonNames[packet.address][channel].join("");
+		//
+		// 	// this.emit("onVelbusButtonName", data);
+		// 	//this.config.RED.comms.publish("onVelbusButtonName", data);
+		// 	// console.log("label:", this.buttonNames[packet.address][channel]);
+		// 	const key = packet.address + "-" + channel;
+		// }
 
 
 	}

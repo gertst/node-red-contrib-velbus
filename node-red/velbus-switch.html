@@ -2,12 +2,21 @@
 
 
 	<div class="form-row">
-        <label for="node-input-connector"><i class="fa fa-tag"></i> Velbus connector</label>
+        <label for="node-input-connector"><i class="fa fa-tag"></i> Velbus</label>
         <input id="node-input-connector" type="text" style="width:70%">
     </div>
 
+	<!--<div class="form-row">-->
+        <!--<label for="node-input-outputs"><i class="fa fa-hand-pointer"></i> Outputs</label>-->
+        <!--<select id="node-input-outputs" style="width: 70%">-->
+            <!--<option value="1">Message on short press only</option>-->
+            <!--<option value="2" selected="selected">Message on short and long press</option>-->
+            <!--<option value="3">Message on short press, long press and detailed output</option>-->
+		<!--</select>-->
+    <!--</div>-->
+
 	<div class="form-row">
-        <label for="node-input-address"><i class="fa fa-envelope"></i> Address (hex)</label>
+        <label for="node-input-address"><i class="fa fa-envelope"></i> Address</label>
         <select id="node-input-address" style="width: 70%"></select>
     </div>
 
@@ -68,12 +77,6 @@
         <span class="on-status-text">Status text here</span>
     </div>
 
-
-
-
-
-
-
 </script>
 
 <script type="text/javascript">
@@ -82,6 +85,7 @@
 		category: 'Velbus',
 		color: '#e1444e',
 		defaults: {
+			// outputs: 3,
 			connector: {value: "", type: "velbus-connector"},
 			address: {value: "", required: true},
 			channel: {value: "", required: true},
@@ -89,14 +93,14 @@
 		},
 		inputs: 1,
 		outputs: 3,
-		outputLabels: ["Short pressed", "Long pressed", "Details"],
+		//outputLabels: ["Short pressed"],
 		align: 'right',
 		icon: "velbus.png",
 		paletteLabel: "Button",
+		findNamesIid: -1,
 
 		label() {
 			if (this.address && this.channel) {
-				console.log("this.address:", this.address, parseInt(this.address).toString(16));
 				return this.name || `Button @ ${parseInt(this.address).toString(16).toUpperCase()}, ch ${this.channel}`;
 			} else {
 				return this.name || 'Button'
@@ -106,25 +110,76 @@
 
 
 		oneditsave() {
+			clearInterval(this.findNamesIid);
 			console.info("oneditsave switch @", this.address, "ch", this.channel);
 			//$.get('velbus/init-velbus-port');
 		},
 
 		oneditprepare() {
 
-			if (this.address && this.channel) {
-				$.get("velbus/get-modules").then(modules => {
+			$.get("velbus/get-modules").then(modules => {
 
-					if (modules.length > 0) {
-						setModules(JSON.parse(modules), this.address);
-					}
-				});
-			}
+				if (modules.length > 0) {
+					setModules(JSON.parse(modules), this.address);
+				}
+			});
 
-			// $("#node-input-connector").change(() => {
-			// 	console.log("chnge");
+			// $("#node-input-connector").change((that) => {
+			//
 			// });
 
+			$("#node-input-address").change((that) => {
+				//console.log("chnge address", $("#node-input-address option:selected").data().nrOfChannels);
+
+
+				setTimeout(() => {
+					const address = parseInt($('#node-input-address').val());
+					const $selectedOption = $(that.target.selectedOptions);
+					let nrOfChannels = 0;
+					if ($selectedOption && $selectedOption.length > 0) {
+						nrOfChannels = parseInt($selectedOption.data().nrOfChannels);
+					}
+
+					// if (address) {
+					// 	for (let channel = 1; channel < nrOfChannels; channel++) {
+					// 		setTimeout(() => {
+					// 			getChannelName(address, channel)
+					// 		}, 1000);
+					// 	}
+					// }
+
+
+					if (nrOfChannels > 0) {
+						$("#node-input-channel option").each((index, el) => {
+							//console.log( index + ": " + $( that ).text() );
+							if (index >= nrOfChannels) {
+								$(el).attr("disabled", "disabled");
+							} else {
+								$(el).removeAttr("disabled");
+							}
+						});
+
+						$.get(`velbus/request-channel-names/${address}/${nrOfChannels}`);
+
+						//poll until all names are found
+						let pollCount = 0;
+						clearInterval(this.findNamesIid);
+						this.findNamesIid = setInterval(() => {
+							$.get(`velbus/get-channel-names/${address}`).then(channelNames => {
+								channelNames = JSON.parse(channelNames);
+								setChannelNames(channelNames);
+								pollCount++;
+								if (pollCount > 15 || nrOfChannels + 1 === channelNames.length) { // + 1 because of first being empty
+									clearInterval(this.findNamesIid);
+								}
+							});
+
+						}, 1500);
+					}
+
+				}, 400);
+
+			});
 
 
 			// $("#node-input-scan").click(() => {
@@ -139,44 +194,54 @@
 
 
 			$("#node-input-get-label").click(() => {
-				const address = parseInt($('#node-input-address').val(), 16);
-				const channel = parseInt($('#node-input-channel').val(), 16);
+				const address = parseInt($('#node-input-address').val());
+				const channel = parseInt($('#node-input-channel').val());
 				if (address && channel) {
-					const url = `velbus/get-name-for-button/${address}/${channel}`;
-					console.log("url", url);
-					$.get(url).then(msg => {
-						console.log(msg);
-						if (msg === "no velbus") {
-							RED.notify("Deploy first to connect to Velbus ...", "error");
-						}
-					});
+					const optionText = $(`#node-input-channel option[value="${channel}"]`).text();
+					$('#node-input-name').val(optionText);
+					// const url = `velbus/get-name-for-button/${address}/${channel}`;
+					// //console.log("url", url);
+					// $.get(url).then(msg => {
+					// 	if (msg === "no velbus") {
+					// 		RED.notify("Deploy first to connect to Velbus ...", "error");
+					// 	} else {
+					// 		$('#node-input-name').val(msg);
+					// 	}
+					// });
 				} else {
 					RED.notify("Add an Address and Channel first.", "error");
 				}
 			});
 		},
 
+		oneditcancel() {
+			clearInterval(this.findNamesIid);
+		},
+
+		oneditdelete() {
+			clearInterval(this.findNamesIid);
+		}
 
 	});
 
-	RED.comms.subscribe("onError", (text) => {
-		console.log("onError", text);
-		$(".on-status-text").text(text);
-		$(".on-status").show();
-		RED.notify(text, "error");
-	});
+	// RED.comms.subscribe("onError", (text) => {
+	// 	console.log("onError", text);
+	// 	$(".on-status-text").text(text);
+	// 	$(".on-status").show();
+	// 	RED.notify(text, "error");
+	// });
+	//
+	// RED.comms.subscribe("onLog", (key, text) => {
+	// 	console.log("onLog", key, text);
+	// 	$(".on-status-text").text(text);
+	// 	$(".on-status").show();
+	// 	RED.notify(text, "info");
+	// });
 
-	RED.comms.subscribe("onLog", (key, text) => {
-		console.log("onLog", key, text);
-		$(".on-status-text").text(text);
-		$(".on-status").show();
-		RED.notify(text, "info");
-	});
-
-	RED.comms.subscribe("onVelbusModuleFound", (key, modules) => {
-		console.log("subscribe onVelbusModuleFound", this);
-		setModules(modules, this.address);
-	});
+	// RED.comms.subscribe("onVelbusModuleFound", (topic, modules) => {
+	// 	console.log("subscribe onVelbusModuleFound", modules);
+	// 	setModules(modules, this.address);
+	// });
 
 
 	function setModules(modules, prevAddress) {
@@ -186,18 +251,39 @@
 
 		// SET MODULES AS OPTIONS
 		modules.forEach(function (module) {
-			$('#node-input-address').append(`<option value="${module.address}">${module.name} @ ${module.address.toString(16).toUpperCase()}</option>`);
+			if (module.hasInput && module.nrOfChannels > 0) {
+				$('#node-input-address').append(`
+					<option
+						value="${module.address}"
+						data-nr-of-channels="${module.nrOfChannels}"
+					>
+						${module.name} @ ${module.address.toString(16).toUpperCase()}
+					</option>`);
+			}
 		});
 
 		// RESET CURRENT VALUE
 		$('#node-input-address').val(prevAddress);
 	}
 
+	function setChannelNames(channelNames) {
+		console.log("channelNames", channelNames);
+		channelNames.forEach(channel => {
+			console.log(channel);
+			if (channel) {
+				$(`#node-input-channel option[value="${channel.id}"]`).text(`${channel.id}. ${channel.name}`);
+			}
+		});
 
-	RED.comms.subscribe("onVelbusButtonName ", (key, value, b, c) => {
-		console.log("onVelbusButtonName key, value, b, c", key, value, b, c);
-		$('#node-input-name').val(value)
-	});
+	}
+
+
+	// RED.comms.subscribe("onVelbusButtonName ", (topic, data) => {
+	// 	console.log("onVelbusButtonName topic, data", topic, data);
+	// 	if (this.address === data.address && this.channel === data.channel) {
+	// 		$('#node-input-name').val(data.label)
+	// 	}
+	// });
 
 
 </script>
@@ -241,6 +327,8 @@
         <dd>Mimics a long press. This will only work if you first mimic a <pre>pressed</pre> then a <pre>longPressed</pre>,
         and finally a <pre>released</pre></dd>
     </dl>
+
+
 
 
 
