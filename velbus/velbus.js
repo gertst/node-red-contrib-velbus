@@ -69,23 +69,46 @@ class Velbus extends EventEmitter {
 					this.setPartName(2, packet);
 				} else if (packet.command === constants.COMMAND_MODULE_TYPE && packet.rawPacket.length >= 10) {
 					let metaData = constants.moduleMetaData.find(i => i.type === packet.getDataByte(1));
-					// console.info(`Module ${moduleName} (type ${packet.dec2hex(packet.getDataByte(1))}) found @ ${packet.dec2hex(packet.address)}`);
-					// this.emit("onStatus", `Module ${moduleName} (type ${packet.dec2hex(packet.getDataByte(1))}) found @ ${packet.dec2hex(packet.address)} - #found: ${this.modules.length}`);
 					if (metaData) {
 						this.modules.push({
 							name: metaData.name,
 							address: packet.address,
 							hasInput: metaData.hasInput,
 							nrOfChannels: metaData.nrOfChannels,
-							requestNameBinary: metaData.requestNameBinary
+							requestNameBinary: metaData.requestNameBinary,
+							extraAddresses: [],
 						});
 					} else {
 						console.log("WARNING: Module of type " + packet.getDataByte(1) + " is unknown.");
 					}
 					// this.emit("onModuleFound", packet, moduleName);
 					// this.config.RED.comms.publish("onVelbusModuleFound", this.modules);
-				}
+				} else if (packet.command === constants.COMMAND_MODULE_SUBTYPE) {
+					//used to get the extra addresses of the VMBELO
+					let metaData = constants.moduleMetaData.find(i => i.type === packet.getDataByte(1));
+					if (metaData) {
+						const module = this.modules.find(i => i.address === packet.address);
+						if (module) {
+							module.extraAddresses = [];
+							if (packet.getDataByte(4) !== 0xFF) {
+								module.extraAddresses.push(packet.getDataByte(4))
+							}
+							if (packet.getDataByte(5) !== 0xFF) {
+								module.extraAddresses.push(packet.getDataByte(5))
+							}
+							if (packet.getDataByte(6) !== 0xFF) {
+								module.extraAddresses.push(packet.getDataByte(6))
+							}
+							if (packet.getDataByte(7) !== 0xFF) {
+								module.extraAddresses.push(packet.getDataByte(7))
+							}
 
+							console.log("extraAddresses:", module.extraAddresses);
+						} else {
+							console.log("WARNING: Module with address " + packet.address + " was not (yet) scanned.");
+						}
+					}
+				}
 			}
 
 			this.emit("onSerialPacket", packet);
@@ -130,10 +153,10 @@ class Velbus extends EventEmitter {
 				}, 1000 + addr * 10);
 
 			}
-			//sent found module after 4 secs
-			setTimeout(() => {
-				this.config.RED.comms.publish("onVelbusModuleFound", this.modules);
-			}, 6000);
+			// //sent found module after 4 secs
+			// setTimeout(() => {
+			// 	this.config.RED.comms.publish("onVelbusModuleFound", this.modules);
+			// }, 6000);
 		} else {
 			this.config.RED.comms.publish("onError", "No Velbus serial port found - not able to scan for modules.");
 		}
@@ -206,22 +229,13 @@ class Velbus extends EventEmitter {
 		for (let i = 2; i < databytes.length; i++) {
 			if (databytes[i] !== 255) {
 				this.buttonNames[packet.address][channel][index] += String.fromCharCode(databytes[i]);
-				console.log(`this.buttonNames[${packet.address}][${channel}]`, this.buttonNames[packet.address][channel]);
+				// console.log(`this.buttonNames[${packet.address}][${channel}]`, this.buttonNames[packet.address][channel]);
 			} else {
 				//console.log("char 255: end??");
 				//this.buttonNames[packet.address][channel].end = true;
 				//this.emit("onButtonName", packet.address, channel, this.buttonNames[packet.address][channel].join(""))
 			}
 		}
-		// //last part? [yes]
-		// if (index === 2) {
-		// 	const label = this.buttonNames[packet.address][channel].join("");
-		//
-		// 	// this.emit("onVelbusButtonName", data);
-		// 	//this.config.RED.comms.publish("onVelbusButtonName", data);
-		// 	// console.log("label:", this.buttonNames[packet.address][channel]);
-		// 	const key = packet.address + "-" + channel;
-		// }
 
 
 	}

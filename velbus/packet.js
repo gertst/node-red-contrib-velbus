@@ -236,6 +236,31 @@ class Packet {
 		return s
 	}
 
+	static getRealChannel(channel) {
+		//modules like VMBEL0 have more than one address, so we have to find the right one depending on the address
+		//there are only 8 channels per address
+		let realChannel = channel;
+		while (realChannel > 8) {
+			realChannel = realChannel - 8;
+		}
+		return realChannel;
+	}
+
+	static getRealAddress(address, channel) {
+		//modules like VMBEL0 have more than one address, so we have to find the right one depending on the address
+		//there are only 8 channels per address
+		let realChannel = channel;
+		let realAddress = address;
+		let cnt = 0;
+		const moduleMetaData = global.velbus.modules.find(i => i.address === address);
+		while (realChannel > 8) {
+			realChannel = realChannel - 8;
+			realAddress = moduleMetaData.extraAddresses[cnt];
+			cnt++;
+		}
+		return realAddress;
+	}
+
 }
 
 module.exports = Packet;

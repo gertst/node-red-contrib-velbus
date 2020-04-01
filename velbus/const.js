@@ -83,6 +83,7 @@ let constants = {
 	COMMAND_STATUS_REQUEST: 0xFA,
 	COMMAND_RELAY_STATUS: 0xFB,
 	COMMAND_MODULE_TYPE: 0xFF,
+	COMMAND_MODULE_SUBTYPE: 0xB0,
 };
 
 module.exports = Object.freeze(constants); // freeze prevents changes by users
