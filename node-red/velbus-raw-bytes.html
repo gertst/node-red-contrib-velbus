@@ -5,6 +5,11 @@
         <input type="text" id="node-input-name">
     </div>
 
+	<div class="form-row">
+        <label for="node-input-connector"><i class="fa fa-tag"></i> Velbus</label>
+        <input id="node-input-connector" type="text" style="width:70%">
+    </div>
+
     <div class="form-row">
         <label for="node-input-bytes"><i class="fa fa-dot-circle-o"></i> Raw Bytes</label>
         <input type="text" id="node-input-bytes">
@@ -26,6 +31,7 @@
 		color: '#e1444e',
 		defaults: {
 			name: {value: "Raw Bytes", required: false},
+			connector: {value: "", type: "velbus-connector"},
 			bytes: {value: "", required: false},
 		},
 		inputs: 1,
@@ -50,11 +56,17 @@
 	</p>
 	<p>E.g.2: To mimic a button press at channel 0x10, address 1, fill in: <pre>0x0F 0xF8 0x10 4 0 1 0 0 0 0x04</pre>
 	</p>
-	<p>Use an injection node to trigger the command. The payload can be anything. <br>
-		The message's payload can be used within the Raw bytes: Use mustache syntax.<br>
+	<p>Use an injection node to trigger the command. The payload does not matter, except when using Mustache: <br>
+		The message's payload can be used in the Raw bytes: Use mustache syntax.<br>
 		E.g.: To sync all modules with the current day and time, use:
 		<pre>0x0F 0xFB 00 0x04 0xD8 {{day}} {{hour}} {{minute}} 0 0x04</pre>
+		and inject a message payload of type JSON like so:  <pre>{"day":1,"hour":7,"minute":45}</pre>
 	</p>
+
+
+
+
+
 
 
 </script>

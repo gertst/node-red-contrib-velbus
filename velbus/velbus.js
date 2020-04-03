@@ -35,20 +35,18 @@ class Velbus extends EventEmitter {
 		// open errors will be emitted as an error event
 		this.client.on('error', err => {
 			//this.emit("onConnectionError", (err.message || JSON.stringify(err)) + " Try " + this.connectionTries);
-			this.config.RED.comms.publish("onError", (err.message || JSON.stringify(err)) + " Try " + this.connectionTries);
-			//console.log("Socket error:", JSON.stringify(err));
+			this.emit("onError", (err.message || JSON.stringify(err)) + " Try " + this.connectionTries);
+			console.log("Socket error:", JSON.stringify(err));
 		});
 		this.client.on('close', msg => {
-			this.emit("close socket", msg);
 			this.iid = setTimeout(() => this.tryReconnect(), 3000);
 
 		});
 
 		this.client.on('ready', () => {
 			//console.log("Socket ready:", JSON.stringify(data));
-			//this.emit("onStatus", "Connection accomplished");
-			this.config.RED.comms.publish("onLog", "Connection with Velbus accomplished");
-			//this.scan();
+			this.emit("onStatus", "Velbus ready");
+
 		});
 
 		this.client.on('data', data => {
@@ -58,7 +56,7 @@ class Velbus extends EventEmitter {
 			packet.setRawBytesAndPack(data);
 
 			if (packet.rawPacket[0] === Packet.STX && packet.rawPacket.length >= 5) {
-				//console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
+				console.info(`BUS: ${packet.toString()}`);
 
 
 				if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
@@ -103,7 +101,7 @@ class Velbus extends EventEmitter {
 								module.extraAddresses.push(packet.getDataByte(7))
 							}
 
-							console.log("extraAddresses:", module.extraAddresses);
+							//console.log("extraAddresses:", module.extraAddresses);
 						} else {
 							console.log("WARNING: Module with address " + packet.address + " was not (yet) scanned.");
 						}
@@ -122,7 +120,6 @@ class Velbus extends EventEmitter {
 	connect() {
 		this.connectionTries++;
 		this.client.connect({port: this.config.port, host: this.config.ip}, () => {
-			this.config.RED.comms.publish("onLog", `Connected (try ${this.connectionTries}) ...`);
 
 			this.scan();
 		});
@@ -158,7 +155,7 @@ class Velbus extends EventEmitter {
 			// 	this.config.RED.comms.publish("onVelbusModuleFound", this.modules);
 			// }, 6000);
 		} else {
-			this.config.RED.comms.publish("onError", "No Velbus serial port found - not able to scan for modules.");
+			this.emit("onError", "No Velbus serial port found - not able to scan for modules.");
 		}
 
 
@@ -166,7 +163,7 @@ class Velbus extends EventEmitter {
 
 	close() {
 		this.client.close();
-		console.warn("Velbus client closed");
+		this.emit("onError", "Velbus client closed");
 	}
 
 	requestButtonName(address, channel) {
@@ -189,19 +186,7 @@ class Velbus extends EventEmitter {
 
 	setPartName(index, packet) {
 
-		// console.log("setPartName", index);
-
-		// VelbusModule
-		// velbusModule = velbusModules.get(address);
-		//
-		// if (velbusModule != null) {
-		// 	byte channel = packet[5];
-		// 	byte[] namePart = Arrays.copyOfRange(packet, 6, 6 + length - 2);
-		//
-		// 	VelbusChannelIdentifier velbusChannelIdentifier = new VelbusChannelIdentifier(address, channel);
-		// 	velbusModule.setChannelName(velbusChannelIdentifier, namePartNumber, namePart);
-		// 	notifyDiscoveredVelbusModule(velbusModule);
-		// }
+		 console.log("setPartName", index, packet.address, this.modules);
 
 		//if (databytes[3] === 255) return;
 		const databytes = packet.getDataBytes();

@@ -1,6 +1,10 @@
 /**
  * Loosely inspired by https://github.com/openhab/openhab2-addons/blob/3268618aaa53812835140d2bde5fc10f57d6d743/addons/binding/org.openhab.binding.velbus/src/main/java/org/openhab/binding/velbus/internal/VelbusBindingConstants.java
  */
+
+
+let constants = require('./const');
+
 class Packet {
 
 	static get COMMAND_BUTTON() {
@@ -188,7 +192,7 @@ class Packet {
 	}
 
 	toString() {
-		return `adress: ${this.dec2hex(this.address)} - priority: ${this.dec2hex(this.priority)} - rtr: ${this.rtr} - command: ${this.dec2hex(this.command)} - data: ${this.getDataBytesAsString()} - raw: ${this.getRawDataAsString()}`;
+		return `adress: ${this.dec2hex(this.address)} - command: ${this.getCommandName}(${this.dec2hex(this.command)}) - data: ${this.getDataBytesAsString()} - priority: ${this.dec2hex(this.priority)} - rtr: ${this.rtr}`;
 	}
 
 	getRawDataAsString() {
@@ -217,8 +221,11 @@ class Packet {
 
 	getDataBytesAsString() {
 		let s = "";
-		for (let i = 4; i < this.dataSize; i++) {
+		for (let i = 4; i < Math.min(20, this.dataSize); i++) {
 			s += this.dec2hex(this.getDataByte(i)) + " ";
+		}
+		if (this.dataSize > 20) {
+			s += ` (${this.dataSize-20} more ...)`
 		}
 		return s;
 	}
@@ -236,7 +243,11 @@ class Packet {
 		return s
 	}
 
-	static getRealChannel(channel) {
+	get getCommandName() {
+		return constants.getKeyByValue(this.command);
+	}
+
+	static getPhysicalChannel(channel) {
 		//modules like VMBEL0 have more than one address, so we have to find the right one depending on the address
 		//there are only 8 channels per address
 		let realChannel = channel;
@@ -246,17 +257,19 @@ class Packet {
 		return realChannel;
 	}
 
-	static getRealAddress(address, channel) {
+	static getPhysicalAddress(address, channel) {
 		//modules like VMBEL0 have more than one address, so we have to find the right one depending on the address
 		//there are only 8 channels per address
 		let realChannel = channel;
 		let realAddress = address;
 		let cnt = 0;
 		const moduleMetaData = global.velbus.modules.find(i => i.address === address);
-		while (realChannel > 8) {
-			realChannel = realChannel - 8;
-			realAddress = moduleMetaData.extraAddresses[cnt];
-			cnt++;
+		if (moduleMetaData) {
+			while (realChannel > 8) {
+				realChannel = realChannel - 8;
+				realAddress = moduleMetaData.extraAddresses[cnt];
+				cnt++;
+			}
 		}
 		return realAddress;
 	}
