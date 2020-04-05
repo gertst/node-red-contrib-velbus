@@ -1,4 +1,4 @@
-<script type="text/x-red" data-template-name="velbus-send-raw-bytes">
+<script type="text/x-red" data-template-name="velbus-receive-raw-bytes">
 
 	<div class="form-row">
 		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
@@ -11,22 +11,6 @@
 	</div>
 
 	<div class="form-row">
-		<label for="node-input-priority"><i class="fa fa-rocket"></i> Priority</label>
-		<select id="node-input-priority" style="width: 70%">
-			<option value="251">Low</option>
-			<option value="248">High</option>
-		</select>
-	</div>
-
-	<div class="form-row">
-		<label for="node-input-rtr"><i class="fa fa-dot-circle-o"></i> RTR</label>
-		<select id="node-input-rtr" style="width: 70%">
-			<option value="0">Off</option>
-			<option value="1">On</option>
-		</select>
-	</div>
-
-	<div class="form-row">
 		<label for="node-input-address"><i class="fa fa-envelope"></i> Address</label>
 		<input type="string" id="node-input-address" style="width:70%">
 		<input type="hidden" id="node-input-addressType">
@@ -34,24 +18,10 @@
 
 
 	<div class="form-row">
-		<label for="node-input-command" style="padding-left:10px; margin-right:-10px;">Command</label>
+		<label for="node-input-command" style="padding-left:10px; margin-right:-10px;">Command to filter on</label>
 		<input type="string" id="node-input-command" style="width: 70%">
 		<input type="hidden" id="node-input-commandType">
 
-	</div>
-
-	<div class="form-row">
-		<label for="node-input-dataBytes"><i class="fa fa-dot-circle-o"></i> Data Bytes</label>
-		<span class="first-byte"></span><span> + </span>
-		<input type="text" id="node-input-dataBytes" value="0x01" style="width: 60%">
-	</div>
-
-	<div class="form-tips">
-		<b>Note:</b> <i>Data bytes</i> should be separated by spaces.<br>
-		Add "0x" to use hexadecimal values. A mix of decimal and hexadecimal is allowed. Eg:
-		<pre>0 0xFB 0x10</pre>
-		<br>
-		<i>See info box for more details.</i>
 	</div>
 
 
@@ -60,25 +30,22 @@
 
 <script type="text/javascript">
 
-	RED.nodes.registerType('velbus-send-raw-bytes', {
+	RED.nodes.registerType('velbus-receive-raw-bytes', {
 		category: 'Velbus',
 		color: '#e1444e',
 		defaults: {
-			name: {value: "Send Raw Bytes", required: false},
+			name: {value: "Receive Raw Bytes", required: false},
 			connector: {value: "", type: "velbus-connector"},
-			command: {value: 0x02},
-			commandType: {value: 0x02}, //the type is the choosen item in the dropdown
-			address: {value: 0x21},
-			addressType: {value: 0x21}, //the type is the choosen item in the dropdown
-			priority: {value: 248},
-			rtr: {value: 0},
-			dataBytes: {value: "0x02"}
+			command: {value: -1},
+			commandType: {value: -1}, //the type is the choosen item in the dropdown
+			address: {value: 0x01},
+			addressType: {value: 0x01}, //the type is the choosen item in the dropdown
 		},
-		inputs: 1,
-		outputs: 0,
-		align: 'right',
+		inputs: 0,
+		outputs: 1,
+		align: 'left',
 		icon: "velbus.png",
-		paletteLabel: "Send Raw Bytes",
+		paletteLabel: "Receive Raw Bytes",
 		label() {
 			return this.name;
 		},
@@ -96,16 +63,17 @@
 					validate: /(0x)?[0-9a-f]+/i //hex value
 				});
 
+				commands.splice(0, 0, {
+					value: "-1",
+					label: "No filter (pass all messages)",
+					hasValue: false
+				});
+
 				//docs for TypedInput: https://nodered.org/docs/api/ui/typedInput/
 				$("#node-input-command").typedInput({
 					typeField: $("#node-input-commandType"),
 					types: commands
-				}).on('change', (e, value) => {
-					let input = $(e.target).val();
-					input = parseInt(input);
-					$(".first-byte").text(numberToHexString(input || value));
 				});
-				$(".first-byte").text(numberToHexString(this.command));
 
 			});
 
@@ -164,15 +132,16 @@
 
 </script>
 
-<script type="text/x-red" data-help-name="velbus-send-raw-bytes">
-	<p>This node connects to any Velbus module it can find on your setup. It can send any command.</p>
+<script type="text/x-red" data-help-name="velbus-receive-raw-bytes">
+	<p>This node connects to any Velbus module it can find on your setup. It can receive any event.</p>
 	<p>Some examples:</p>
 	<ul>
-		<li>Periodically send the date and time to your Velbus setup. I had to do this because the clock shifts over time.</li>
-		<li>Send a memo text to the OLED display of your VMBELO Edge-lit touch panel.</li>
-		<li>Request the temperature of a sensor.</li>
+		<li>Receive the temperature of a sensor</li>
+		<li>Receive the state of a Dimmer.</li>
+		<li>Receive the state of a Relay.</li>
+		<li>Get the led color of an edge-lit touch panel.</li>
 	</ul>
-
+	<p>Typically, you first have to send a request command (Eg. by using the Set Raw Bytes node) to get these kind of messages.</p>
 
 	<h3>Setup</h3>
 	<p>These Velbus nodes require a connection to a Velbus TCP server.
@@ -183,48 +152,30 @@
 		<dt>Velbus<span class="property-type">Config</span></dt>
 		<dd>Connection with the Velbus TCP server.</dd>
 
-		<dt>Priority <span class="property-type">Number</span></dt>
-		<dd>High or Low</dd>
-
-		<dt>RTR <span class="property-type">Boolean</span></dt>
-		<dd>True or False</dd>
-
 		<dt>Addres <span class="property-type">Number</span></dt>
 		<dd>Choose an address from the list. These are the modules found on your setup that have one or more push buttons. <br>
-			For generic Commands on the bus, choose <code>Generic (0x00)</code>.
-			If your module is, for some reason, not listed, you can add a channel manually.</dd>
-
-		<dt>Command <span class="property-type">Number</span></dt>
-		<dd>Choose a command from the list. If the command is not listed, you can add a command byte manually.</dd>
-
-		<dt>Data Bytes <span class="property-type">String</span></dt>
-		<dd><p>A space separated list of numbers.</p>
-			<p>You don't have to add the first command byte anymore as it will be added for you from the Command property.<br>
-			You can add decimal numbers or hexadecimal numbers (using the 0x notation).</p>
-			<p><b>Dynamic data bytes</b>
-			You can feed the data bytes with dynamic data by using JSON keys in the input node and Mustache syntax in the
-				Data Bytes input:<br>
-				E.g.:</p>
-			<ul>
-				<li>To send the current day and time, use the command COMMAND_REAL_TIME_CLOCK and this string for the data
-					bytes:
-					<code>{{day}} {{hour}} {{minute}}</code>
-				<li>
-					The input message payload of type JSON should be:
-					<code>{"day":1,"hour":7,"minute":45}</code><br>
-					Of course you can make this date dynamic by using a Function node. See example in the Readme on Github.
-				</li>
-			</ul>
+			If your module is, for some reason, not listed, you can add a channel manually.<br>
+			You can also choose "Genric (0x00) to receive generic bus events."
 		</dd>
+
+		<dt>Command filter<span class="property-type">Number</span></dt>
+		<dd>Choose a command from the list to only listen to a specific command.<br>
+			To listen to all messages on the selected address, choose <code>No filter</code><br>
+			If the command is not listed, you can add a command byte manually.</dd>
 
 		<dt>Name <span class="property-type">string</span></dt>
 		<dd>Type your custom name.</dd>
 	</dl>
 
-	<h3>Inputs</h3>
-	<p>You can trigger this node by injecting a message payload. <br>
-		Any payload will do, but if you want to send dynamic data, use the JSON format as shown above.
-	</p>
+	<h3>Outputs</h3>
+	<p>The message payload contains a JSON with these properties: </p>
+	<ul>
+	<li>channel: as decimal number - to have the hex notation, use <code>channel.toString(16)</code></li>
+	<li>command: as decimal number - to have the hex notation, use <code>command.toString(16)</code></li>
+	<li>commandName: as string</li>
+	<li>dataBytesArray: all data bytes as an array of decimal numbers</li>
+	<li>rawBytesArray: the entire Packet as an array of decimal numbers</li>
+	</ul>
 
 	<h3>FAQ</h3>
 	<ol>
