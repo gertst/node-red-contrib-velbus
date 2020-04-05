@@ -92,7 +92,7 @@
 			name: {value: "", required: false}
 		},
 		inputs: 1,
-		outputs: 3,
+		outputs: 3, //dynamic
 		outputLabels: ["Short pressed (Boolean)", "Long pressed (Boolean)", "Detailed event name (String)"],
 		align: 'right',
 		icon: "velbus.png",
@@ -101,7 +101,7 @@
 
 		label() {
 			if (this.address && this.channel) {
-				return this.name || `Button @ ${parseInt(this.address).toString(16).toUpperCase()}, ch ${this.channel}`;
+				return this.name || `Button @ ${numberToHexString(this.address)}, ch ${numberToHexString(this.channel)}`;
 			} else {
 				return this.name || 'Button'
 			}
@@ -111,7 +111,7 @@
 
 		oneditsave() {
 			clearInterval(this.findNamesIid);
-			console.info("oneditsave switch @", this.address, "ch", this.channel);
+			//console.info("oneditsave switch @", this.address, "ch", this.channel);
 			//$.get('velbus/init-velbus-port');
 		},
 
@@ -205,7 +205,7 @@
 						value="${module.address}"
 						data-nr-of-channels="${module.nrOfChannels}"
 					>
-						${module.name} @ ${module.address.toString(16).toUpperCase()}
+						${module.name} @ ${numberToHexString(module.address)}
 					</option>`);
 			}
 		});
@@ -222,7 +222,19 @@
 				$(`#node-input-channel option[value="${channel.id}"]`).text(`${channel.id}. ${channel.name}`);
 			}
 		});
+	}
 
+	function numberToHexString(value) {
+		if (isNaN(value)) {
+			return "NaN"
+		} else {
+			let hex = value.toString(16).toUpperCase();
+			if (hex.length < 2) {
+				hex = "0" + hex;
+			}
+			hex = "0x" + hex;
+			return hex;
+		}
 	}
 
 </script>
@@ -230,6 +242,8 @@
 
 <script type="text/x-red" data-help-name="velbus-switch">
     <p>Velbus Switch node to send and listen to button events.</p>
+
+    <p>OUTDATED!</p>
 
     <h3>Setup</h3>
     <p>The velbus serial port is found automatically. You might restart the Node-red service on first deploy.</p>

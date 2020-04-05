@@ -221,7 +221,7 @@ class Packet {
 
 	getDataBytesAsString() {
 		let s = "";
-		for (let i = 4; i < Math.min(20, this.dataSize); i++) {
+		for (let i = 0; i < Math.min(20, this.dataSize); i++) {
 			s += this.dec2hex(this.getDataByte(i)) + " ";
 		}
 		if (this.dataSize > 20) {
@@ -244,7 +244,7 @@ class Packet {
 	}
 
 	get getCommandName() {
-		return constants.getKeyByValue(this.command);
+		return constants.getCommandKeyByValue(this.command);
 	}
 
 	static getPhysicalChannel(channel) {

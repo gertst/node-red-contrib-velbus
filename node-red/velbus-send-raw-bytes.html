@@ -1,0 +1,182 @@
+<script type="text/x-red" data-template-name="velbus-send-raw-bytes">
+
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name">
+	</div>
+
+	<div class="form-row">
+		<label for="node-input-connector"><i class="fa fa-tag"></i> Velbus</label>
+		<input id="node-input-connector" type="text" style="width:70%">
+	</div>
+
+	<div class="form-row">
+		<label for="node-input-priority"><i class="fa fa-rocket"></i> Priority</label>
+		<select id="node-input-priority" style="width: 70%">
+			<option value="251">Low</option>
+			<option value="248">High</option>
+		</select>
+	</div>
+
+	<div class="form-row">
+		<label for="node-input-rtr"><i class="fa fa-dot-circle-o"></i> RTR</label>
+		<select id="node-input-rtr" style="width: 70%">
+			<option value="0">Off</option>
+			<option value="1">On</option>
+		</select>
+	</div>
+
+	<div class="form-row">
+		<label for="node-input-address"><i class="fa fa-envelope"></i> Address</label>
+		<input type="string" id="node-input-address" style="width:70%">
+		<input type="hidden" id="node-input-addressType">
+	</div>
+
+
+	<div class="form-row">
+		<label for="node-input-command" style="padding-left:10px; margin-right:-10px;">Command</label>
+		<input type="string" id="node-input-command" style="width: 70%">
+		<input type="hidden" id="node-input-commandType">
+
+	</div>
+
+	<div class="form-row">
+		<label for="node-input-dataBytes"><i class="fa fa-dot-circle-o"></i> Data Bytes</label>
+		<span class="first-byte"></span><span> + </span>
+		<input type="text" id="node-input-dataBytes" value="0x01" style="width: 60%">
+	</div>
+
+	<div class="form-tips">
+		<b>Note:</b> <i>Data bytes</i> should be separated by spaces.<br>
+		Add "0x" to use hexadecimal values. A mix of decimal and hexadecimal is allowed. Eg:
+		<pre>0 0xFB 0x10</pre>
+		<br>
+		<i>See info box for more details.</i>
+	</div>
+
+
+</script>
+
+
+<script type="text/javascript">
+
+	RED.nodes.registerType('velbus-send-raw-bytes', {
+		category: 'Velbus',
+		color: '#e1444e',
+		defaults: {
+			name: {value: "Send Raw Bytes", required: false},
+			connector: {value: "", type: "velbus-connector"},
+			command: {value: 0x02},
+			commandType: {value: 0x02}, //the type is the choosen item in the dropdown
+			address: {value: 0x21},
+			addressType: {value: 0x21}, //the type is the choosen item in the dropdown
+			priority: {value: 248},
+			rtr: {value: 0},
+			dataBytes: {value: ""}
+		},
+		inputs: 1,
+		outputs: 0,
+		align: 'right',
+		icon: "velbus.png",
+		paletteLabel: "Send Raw Bytes",
+		label() {
+			return this.name;
+		},
+
+		oneditprepare() {
+
+			$.get(`velbus/get-commands-list`).then(commands => {
+				commands = JSON.parse(commands);
+				commands.sort((a, b) => {
+					return a.label > b.label ? 1 : -1
+				});
+				commands.splice(0, 0, {
+					value: "custom",
+					label: "Hexadecimal (0x) or decimal",
+					validate: /(0x)?[0-9a-f]+/i //hex value
+				});
+
+				//docs for TypedInput: https://nodered.org/docs/api/ui/typedInput/
+				$("#node-input-command").typedInput({
+					typeField: $("#node-input-commandType"),
+					types: commands
+				}).on('change', (e, value) => {
+					let input = $(e.target).val();
+					input = parseInt(input);
+					$(".first-byte").text(numberToHexString(input || value));
+				});
+				$(".first-byte").text(numberToHexString(this.command));
+
+			});
+
+			$.get("velbus/get-modules").then(modules => {
+
+				if (modules.length > 0) {
+					modules = JSON.parse(modules);
+					modules = modules.map(i => {
+						return {
+							value: i.address,
+							hasValue: false,
+							label: `${i.name} (${numberToHexString(i.address)})`
+						}
+					});
+				} else {
+					modules = [];
+				}
+
+				modules.splice(0, 0, {
+					value: "custom",
+					label: "Hexadecimal (0x) or decimal",
+					validate(i) {
+						return !isNaN(parseInt(i)) && parseInt(i) > 0
+					}
+				});
+
+				$("#node-input-address").typedInput({
+					typeField: $("#node-input-addressType"),
+					types: modules
+				});
+			});
+
+		}
+
+	});
+
+	function numberToHexString(value) {
+		if (isNaN(value)) {
+			return "NaN"
+		} else {
+			let hex = value.toString(16).toUpperCase();
+			if (hex.length < 2) {
+				hex = "0" + hex;
+			}
+			hex = "0x" + hex;
+			return hex;
+		}
+	}
+
+
+</script>
+
+
+<script type="text/x-red" data-help-name="velbus-send-raw-bytes">
+	<h3>Data Bytes</h3>
+	<p>Fill in a space separated list of numbers. Use the prefix '0x' for hex values.</p>
+	<p>Only add data bytes: For convenience, the start, end and checksum byte will be set for you.</p>
+
+	<h3>Dynamic data bytes</h3>
+	<p>You can feed the data bytes with dynamic data by using JSON keys in the input node and Mustache syntax in the
+		Data Bytes input:<p>
+	<p>E.g.:</p>
+	<ul>
+		<li>To send the current day and time, use the command COMMAND_REAL_TIME_CLOCK and this string for the data
+			bytes:
+			<pre>{{day}} {{hour}} {{minute}}</pre>
+		<li>
+			The input message payload of type JSON should be:
+			<pre>{"day":1,"hour":7,"minute":45}</pre>
+			Of course you can make this date dynamic by using a Function node.
+		</li>
+	</ul>
+
+</script>

@@ -14,6 +14,7 @@ class Velbus extends EventEmitter {
 		this.connectionTries = 0;
 
 		this.init();
+
 	}
 
 	destroy() {
@@ -59,13 +60,13 @@ class Velbus extends EventEmitter {
 				console.info(`BUS: ${packet.toString()}`);
 
 
-				if (packet.command === constants.COMMAND_MODULE_NAME_PART1) {
+				if (packet.command === constants.commands.COMMAND_MODULE_NAME_PART1) {
 					this.setPartName(0, packet);
-				} else if (packet.command === constants.COMMAND_MODULE_NAME_PART2) {
+				} else if (packet.command === constants.commands.COMMAND_MODULE_NAME_PART2) {
 					this.setPartName(1, packet);
-				} else if (packet.command === constants.COMMAND_MODULE_NAME_PART3) {
+				} else if (packet.command === constants.commands.COMMAND_MODULE_NAME_PART3) {
 					this.setPartName(2, packet);
-				} else if (packet.command === constants.COMMAND_MODULE_TYPE && packet.rawPacket.length >= 10) {
+				} else if (packet.command === constants.commands.COMMAND_MODULE_TYPE && packet.rawPacket.length >= 10) {
 					let metaData = constants.moduleMetaData.find(i => i.type === packet.getDataByte(1));
 					if (metaData) {
 						this.modules.push({
@@ -81,7 +82,7 @@ class Velbus extends EventEmitter {
 					}
 					// this.emit("onModuleFound", packet, moduleName);
 					// this.config.RED.comms.publish("onVelbusModuleFound", this.modules);
-				} else if (packet.command === constants.COMMAND_MODULE_SUBTYPE) {
+				} else if (packet.command === constants.commands.COMMAND_MODULE_SUBTYPE) {
 					//used to get the extra addresses of the VMBELO
 					let metaData = constants.moduleMetaData.find(i => i.type === packet.getDataByte(1));
 					if (metaData) {
@@ -175,7 +176,7 @@ class Velbus extends EventEmitter {
 			channelBit = Math.pow(2, channel - 1);
 		}
 		let getModuleLabel = new Packet(address, Packet.PRIORITY_LOW,
-				[constants.COMMAND_MODULE_NAME_REQUEST, channelBit], false);
+				[constants.commands.COMMAND_MODULE_NAME_REQUEST, channelBit], false);
 		if (this.client) {
 			this.client.write(getModuleLabel.getRawBuffer());
 		} else {

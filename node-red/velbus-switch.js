@@ -50,7 +50,7 @@ module.exports = function (RED) {
 					// 	this.requestButtonName();
 					// }
 
-					if (packet.command === constants.COMMAND_SWITCH_STATUS) {
+					if (packet.command === constants.commands.COMMAND_SWITCH_STATUS) {
 						//console.log(`pushed ${packet.getRawDataAsString()}`);
 						const databytes = packet.getDataBytes();
 						if (databytes[1] === Math.pow(2, Packet.getPhysicalChannel(this.channel) - 1)) {
@@ -120,7 +120,7 @@ module.exports = function (RED) {
 					let packet = new Packet(
 							Packet.getPhysicalAddress(this.address, this.channel),
 							Packet.PRIORITY_HIGH,
-							[constants.COMMAND_SWITCH_STATUS, pressed, released, longPressed],
+							[constants.commands.COMMAND_SWITCH_STATUS, pressed, released, longPressed],
 							false);
 					this.sendPacket(packet);
 				}, 25);
@@ -130,7 +130,7 @@ module.exports = function (RED) {
 			let packet = new Packet(
 					Packet.getPhysicalAddress(this.address, this.channel),
 					Packet.PRIORITY_HIGH,
-					[constants.COMMAND_SWITCH_STATUS, pressed, released, longPressed],
+					[constants.commands.COMMAND_SWITCH_STATUS, pressed, released, longPressed],
 					false);
 
 			this.sendPacket(packet);
@@ -170,15 +170,7 @@ module.exports = function (RED) {
 	//
 	// });
 
-	RED.httpAdmin.get(`/velbus/get-modules`, function (req, res, next) {
 
-		if (global.velbus && global.velbus.modules) {
-			res.end(JSON.stringify(global.velbus.modules));
-		} else {
-			res.end([]);
-		}
-
-	});
 
 
 	RED.httpAdmin.get(`/velbus/request-channel-names/:address/:nrOfChannels`, function (req, res, next) {
@@ -196,6 +188,15 @@ module.exports = function (RED) {
 		}
 	});
 
+	RED.httpAdmin.get(`/velbus/get-modules`, function (req, res, next) {
+
+		if (global.velbus && global.velbus.modules) {
+			res.end(JSON.stringify(global.velbus.modules));
+		} else {
+			res.end([]);
+		}
+
+	});
 
 	RED.httpAdmin.get(`/velbus/get-channel-names/:address`, function (req, res, next) {
 		let channelNames = [];
