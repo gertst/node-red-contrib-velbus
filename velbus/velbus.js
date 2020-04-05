@@ -56,8 +56,8 @@ class Velbus extends EventEmitter {
 
 			packet.setRawBytesAndPack(data);
 
+			console.info(`BUS: ${packet.toString()}`);
 			if (packet.rawPacket[0] === Packet.STX && packet.rawPacket.length >= 5) {
-				console.info(`BUS: ${packet.toString()}`);
 
 
 				if (packet.command === constants.commands.COMMAND_MODULE_NAME_PART1) {
@@ -187,7 +187,7 @@ class Velbus extends EventEmitter {
 
 	setPartName(index, packet) {
 
-		 console.log("setPartName", index, packet.address, this.modules);
+		 //console.log("setPartName", index, packet.address, this.modules);
 
 		//if (databytes[3] === 255) return;
 		const databytes = packet.getDataBytes();

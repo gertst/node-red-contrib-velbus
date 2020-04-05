@@ -9,9 +9,9 @@
 	<div class="form-row">
         <label for="node-input-outputs"><i class="fa fa-hand-pointer"></i> Outputs</label>
         <select id="node-input-outputs" style="width: 70%">
-            <option value="1" selected="selected">Listen to short taps only</option>
-            <option value="2">Listen to short and long tabs</option>
-            <option value="3">Listen to short tabs, long tabs, and other inputs</option>
+            <option value="1" selected="selected">Listen to short pressed only</option>
+            <option value="2">Listen to short and long presses</option>
+            <option value="3">Listen to short and long presses + details</option>
 		</select>
     </div>
 
@@ -241,48 +241,88 @@
 
 
 <script type="text/x-red" data-help-name="velbus-switch">
-    <p>Velbus Switch node to send and listen to button events.</p>
+	<p>This node connects to Velbus input modules having push buttons. It sends button actions (press/long press/release) and/or listens to button presses.</p>
+	<p>Some examples:</p>
+	<ul>
+		<li>Mimic a press of a button of a Velbus module when to turn on a relay when a Sonoff sensor detects presence.</li>
+		<li>Listen to a press of a button on a Velbus module to toggle a Hue light.</li>
+	</ul>
 
-    <p>OUTDATED!</p>
 
     <h3>Setup</h3>
-    <p>The velbus serial port is found automatically. You might restart the Node-red service on first deploy.</p>
-    <p>Address: Decimal value! If your module is not found by the search feature, you can fill it in manually</p>
+	<p>These Velbus nodes require a connection to a Velbus TCP server.
+		Eg: <a href="https://github.com/jeroends/velserv" target="_blank">This one</a> by Jeroends runs like a charm on a Raspberry Pi.</p>
 
-    <h3>Listening for button events</h3>
-    <p>The event message that the Button sends contains the following data in the <b>msg.payload</b>:</p>
-    <dl class="message-properties">
-        <dt>pressed<span class="property-type">string</span></dt>
-        <dd>When the button is pressed.</dd>
-
-        <dt>released<span class="property-type">string</span></dt>
-        <dd>When the button is released.</dd>
-
-        <dt>longPressed<span class="property-type">string</span></dt>
-        <dd>When the button is pressed more then 2 seconds.</dd>
-    </dl>
-
-    <h3>Sending button events</h3>
-	<p>You can mimic button events by injecting a message like so:
+	<h3>Properties</h3>
 	<dl class="message-properties">
-        <dt>msg.payload="press"<span class="property-type"></span></dt>
+		<dt>Velbus<span class="property-type">Config</span></dt>
+		<dd>Connection with the Velbus TCP server.</dd>
+
+		<dt>Outputs <span class="property-type">List</span></dt>
+		<dd><i>See the below section Outputs for more details.</i></dd>
+
+		<dt>Addres <span class="property-type">number</span></dt>
+		<dd>Choose an address from the list. These are the modules found on your setup that have one or more push buttons.</dd>
+
+		<dt>Channel <span class="property-type">number</span></dt>
+		<dd>Choose a channel from the list. The channel names are read from the selected module.</dd>
+
+		<dt>Name <span class="property-type">string</span></dt>
+		<dd>Type your custom name or press the Search button to copy over the selected Channel name.</dd>
+	</dl>
+
+    <h3>Inputs</h3>
+	<p>You can mimic button events by injecting a message payload like so:
+	<dl class="message-properties">
+        <dt>msg.payload="press"<span class="property-type">string</span></dt>
         <dd>This mimics a short press (press and release). Recommended and easiest for most scenarios.</dd>
 
-		<dt>msg.payload="pressed"<span class="property-type"></span></dt>
+		<dt>msg.payload="pressed"<span class="property-type">string</span></dt>
         <dd>This mimics <b>only</b> a press.<br>
-            You are supposed to send a <pre>released</pre> command afterwards.
+            You are supposed to send a <code>released</code> command afterwards.
             If you want to mimic a long press (> 2s), see below.</dd>
 
-        <dt>msg.payload="released"<span class="property-type"></span></dt>
-        <dd>This mimics an release. Required after a <pre>(long)pressed</pre></dd>
+        <dt>msg.payload="released"<span class="property-type">string</span></dt>
+        <dd>This mimics an release. Required after a <code>pressed</code> or a <code>longPressed</code> payload has been sent.</dd>
 
-        <dt>msg.payload="longPressed"<span class="property-type"></span></dt>
-        <dd>Mimics a long press. This will only work if you first mimic a <pre>pressed</pre> then a <pre>longPressed</pre>,
-        and finally a <pre>released</pre></dd>
+        <dt>msg.payload="longPressed"<span class="property-type">string</span></dt>
+        <dd>Mimics a long press. This will only work if you first send a <code>pressed</code> then a <code>longPressed</code>,
+        and finally a <code>released</code> payload.</dd>
     </dl>
 
+	<h3>Outputs</h3>
+	<p>There are one, two or three outputs, Depending on the chosen <code>output</code> property.</p>
 
+	<dl class="message-properties">
+		<dt>Listen to short pressed only<span class="property-type">boolean</span></dt>
+		<dd>One output, returning the Boolean <code>true</code> on release.</dd>
 
+		<dt>Listen to short and long presses<span class="property-type">boolean</span></dt>
+		<dd>Output 1: returning the Boolean <code>true</code> on release.<br>
+			Output 2: returning the Boolean <code>true</code> on long press.</dd>
+		<dt>Listen to short and long presses + details<span class="property-type">string</span></dt>
+		<dd>Output 1: returning the Boolean <code>true</code> on release.<br>
+			Output 2: returning the Boolean <code>true</code> on long press.<br>
+			Output 3: returning a String <code>pressed</code>, <code>longPressed</code> and <code>released</code>
+			resp. when a button is pressed, long pressed and released.
+		</dd>
+	</dl>
 
+	<h3>FAQ</h3>
+	<ol>
+		<li><b>My Velbus module is not shown in the Address list!</b> I only own a limited number of modules and could only test a few.
+			So your module might not be categorized as Push button module. You can add or change this yourself by updating the
+			file <code>~/.node-red/node_modules/node-red-contrib-velbus/velbus/const.js</code>. <br>
+			Find your module (or add it) and make sure the property <code>nrOfChannels</code> is correct and the property <code>hasInput</code> is set to true.<br>
+			Restart Node-red and your module should be found in the list of addresses! Please let me know these kind of errors so I can update my code.
+		</li>
+	<li><b>The number of channels is wrong!</b> See Above.</li>
+	<li><b>The channel names are wrong!</b> Newer modules use a different method to read channel names. Change the property <code>requestNameBinary</code> from true to false (or the other way around) and restart Node-red.</li>
+	</ol>
 
+	<h3>References</h3>
+	<ul>
+		<li>Use <a href="https://github.com/gertst/node-red-contrib-velbus" target="_blank">the projects github repository</a> to check issues and post solutions/requests here.</li>
+		<li><a href="https://twitter.com/GertStalpaert" target="_blank">Contact me on Twitter</a> if you want to share a word about your own setup. ;-)</li>
+	</ul
 </script>

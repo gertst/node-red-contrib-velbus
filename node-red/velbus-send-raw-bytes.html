@@ -72,7 +72,7 @@
 			addressType: {value: 0x21}, //the type is the choosen item in the dropdown
 			priority: {value: 248},
 			rtr: {value: 0},
-			dataBytes: {value: ""}
+			dataBytes: {value: "0x02"}
 		},
 		inputs: 1,
 		outputs: 0,
@@ -92,7 +92,7 @@
 				});
 				commands.splice(0, 0, {
 					value: "custom",
-					label: "Hexadecimal (0x) or decimal",
+					label: "Manual (for Hex, use 0x format)",
 					validate: /(0x)?[0-9a-f]+/i //hex value
 				});
 
@@ -125,8 +125,14 @@
 				}
 
 				modules.splice(0, 0, {
+					value: 0,
+					hasValue: false,
+					label: "All modules (0x00)"
+				});
+
+				modules.splice(0, 0, {
 					value: "custom",
-					label: "Hexadecimal (0x) or decimal",
+					label: "Manual (for Hex, use 0x format)",
 					validate(i) {
 						return !isNaN(parseInt(i)) && parseInt(i) > 0
 					}
@@ -158,25 +164,77 @@
 
 </script>
 
-
 <script type="text/x-red" data-help-name="velbus-send-raw-bytes">
-	<h3>Data Bytes</h3>
-	<p>Fill in a space separated list of numbers. Use the prefix '0x' for hex values.</p>
-	<p>Only add data bytes: For convenience, the start, end and checksum byte will be set for you.</p>
-
-	<h3>Dynamic data bytes</h3>
-	<p>You can feed the data bytes with dynamic data by using JSON keys in the input node and Mustache syntax in the
-		Data Bytes input:<p>
-	<p>E.g.:</p>
+	<p>This node connects to any Velbus module it can find on your setup. It can send any command.</p>
+	<p>Some examples:</p>
 	<ul>
-		<li>To send the current day and time, use the command COMMAND_REAL_TIME_CLOCK and this string for the data
-			bytes:
-			<pre>{{day}} {{hour}} {{minute}}</pre>
-		<li>
-			The input message payload of type JSON should be:
-			<pre>{"day":1,"hour":7,"minute":45}</pre>
-			Of course you can make this date dynamic by using a Function node.
-		</li>
+		<li>Periodically send the date and time to your Velbus setup. I had to do this because the clock shifts over time.</li>
+		<li>Send a memo text to the OLED display of your VMBELO Edge-lit touch panel.<p></p>.</li>
 	</ul>
 
+
+	<h3>Setup</h3>
+	<p>These Velbus nodes require a connection to a Velbus TCP server.
+		Eg: <a href="https://github.com/jeroends/velserv" target="_blank">This one</a> by Jeroends runs like a charm on a Raspberry Pi.</p>
+
+	<h3>Properties</h3>
+	<dl class="message-properties">
+		<dt>Velbus<span class="property-type">Config</span></dt>
+		<dd>Connection with the Velbus TCP server.</dd>
+
+		<dt>Priority <span class="property-type">Number</span></dt>
+		<dd>High or Low</dd>
+
+		<dt>RTR <span class="property-type">Boolean</span></dt>
+		<dd>True or False</dd>
+
+		<dt>Addres <span class="property-type">Number</span></dt>
+		<dd>Choose an address from the list. These are the modules found on your setup that have one or more push buttons. <br>
+			If your module is, for some reason, not listed, you can add a channel manually.</dd>
+
+		<dt>Command <span class="property-type">Number</span></dt>
+		<dd>Choose a command from the list. If the command is not listed, you can add a command byte manually.</dd>
+
+		<dt>Data Bytes <span class="property-type">String</span></dt>
+		<dd><p>A space separated list of numbers.</p>
+			<p>You don't have to add the first command byte anymore as it will be added for you from the Command property.<br>
+			You can add decimal numbers or hexadecimal numbers (using the 0x notation).</p>
+			<p><b>Dynamic data bytes</b>
+			You can feed the data bytes with dynamic data by using JSON keys in the input node and Mustache syntax in the
+				Data Bytes input:<br>
+				E.g.:</p>
+			<ul>
+				<li>To send the current day and time, use the command COMMAND_REAL_TIME_CLOCK and this string for the data
+					bytes:
+					<code>{{day}} {{hour}} {{minute}}</code>
+				<li>
+					The input message payload of type JSON should be:
+					<code>{"day":1,"hour":7,"minute":45}</code><br>
+					Of course you can make this date dynamic by using a Function node. See example in the Readme on Github.
+				</li>
+			</ul>
+		</dd>
+
+		<dt>Name <span class="property-type">string</span></dt>
+		<dd>Type your custom name.</dd>
+	</dl>
+
+	<h3>Inputs</h3>
+	<p>You can trigger this node by injecting a message payload. <br>
+		Any payload will do, but if you want to send dynamic data, use the JSON format as shown above.
+	</p>
+
+	<h3>FAQ</h3>
+	<ol>
+		<li><b>My Velbus module is not shown in the Address list!</b> You can add your module to this list by updating the
+			file <code>~/.node-red/node_modules/node-red-contrib-velbus/velbus/const.js</code>. <br>
+			Restart Node-red and your module should be found in the list of addresses! Please let me know these kind of errors so I can update my code.
+		</li>
+	</ol>
+
+	<h3>References</h3>
+	<ul>
+		<li>Use <a href="https://github.com/gertst/node-red-contrib-velbus" target="_blank">the projects github repository</a> to check issues and post solutions/requests here.</li>
+		<li><a href="https://twitter.com/GertStalpaert" target="_blank">Contact me on Twitter</a> if you want to share a word about your own setup. ;-)</li>
+	</ul
 </script>
