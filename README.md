@@ -46,7 +46,7 @@ Next modules can be controlled by simulating button presses.
   module or change its properties. See module help. Let me know your changes!
 
 
-##### To DO
+##### To Do
 - Although the generic nodes can manage all Velbus commands and messages, I want to 
   add som dedicated modules for dimmers, relays, Memo texts, Temperature sensors, ...
 
