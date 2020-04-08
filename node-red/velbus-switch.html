@@ -217,7 +217,7 @@
 	function setChannelNames(channelNames) {
 		// console.log("channelNames", channelNames);
 		channelNames.forEach(channel => {
-			console.log(channel);
+			// console.log(channel);
 			if (channel) {
 				$(`#node-input-channel option[value="${channel.id}"]`).text(`${channel.id}. ${channel.name}`);
 			}

@@ -1,7 +1,4 @@
 let constants = require('../velbus/const');
-let Packet = require('../velbus/packet');
-let Velbus = require('../velbus/velbus');
-let mustache = require("mustache");
 
 module.exports = function (RED) {
 	"use strict";

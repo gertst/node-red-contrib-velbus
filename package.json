@@ -1,14 +1,15 @@
 {
 	"name": "node-red-contrib-velbus",
-	"version": "0.2.00",
+	"version": "0.2.02",
 	"private": false,
 	"scripts": {},
 	"node-red": {
 		"nodes": {
 			"velbus-connector": "node-red/velbus-connector.js",
-			"velbus-switch": "node-red/velbus-switch.js",
 			"velbus-send-raw-bytes": "node-red/velbus-send-raw-bytes.js",
-			"velbus-receive-raw-bytes": "node-red/velbus-receive-raw-bytes.js"
+			"velbus-receive-raw-bytes": "node-red/velbus-receive-raw-bytes.js",
+			"velbus-switch": "node-red/velbus-switch.js",
+			"velbus-temperature": "node-red/velbus-temperature.js"
 		}
 	},
 	"dependencies": {

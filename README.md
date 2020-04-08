@@ -9,15 +9,19 @@ To connect to Velbus you need
 - an USB connector module like the VMB1USB or VMBRSUSB. I only tested with a VMB1USB but I suppose both will work. Let me know if not! 
 - a TCP server app that converts USB serial communication to a socket connection. 
 I use the splendid and rock solid VelServ app made by Jeroends. You can find it [here](https://github.com/jeroends/velserv).
-You can find MDAR's [installation details here](https://forum.velbus.eu/t/how-to-install-and-run-velserv-a-velbus-tcp-gateway/15422) on how to install it on a Pi.
+You can find MDAR's [installation details here](https://forum.velbus.eu/t/how-to-install-and-run-velserv-a-velbus-tcp-gateway/15422) 
+to install it on almost any Linux/Debian based system.
 
 
-Once installed, 3 Velbus nodes can be used **to send Velbus commands** and **listen to Velbus messages**.
-There's also a **Button Node** to manage presses on Velbus push buttons.
+Once installed, these Velbus nodes can be found in the Velbus palette:
+ 1. a **Send Raw Bytes** node, to send Velbus commands
+ 2. a **Receive Raw Bytes** node, to listen to Velbus messages
+ 3. a **Button** node to manage presses on Velbus push buttons
+ 4. a **Temperature** Node to send and receive temperature sensor data
 
 __If you are using this module, please let me know! Curious about your findings/remarks/...__
 
-## Status
+## History
 
 - 2018/12/17 
 	- Alpha phase: loading modules, no real workflow yet!
@@ -32,6 +36,8 @@ __If you are using this module, please let me know! Curious about your findings/
 	- BREAKING change: The connection to Velbus is now accomplished using TCP/sockets
 	- All modules have now a better UI to select modules an nodes
 	- There's a new node to receive all Velbus messages
+- 2020/04/08
+	- A new Temperature node	
 	
 ## Implemented Velbus modules:
 

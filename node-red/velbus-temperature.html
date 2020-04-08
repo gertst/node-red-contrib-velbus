@@ -1,0 +1,226 @@
+<script type="text/x-red" data-template-name="velbus-temperature">
+
+	<div class="form-row">
+		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+		<input type="text" id="node-input-name">
+	</div>
+
+	<div class="form-row">
+		<label for="node-input-connector"><i class="fa fa-tag"></i> Velbus</label>
+		<input id="node-input-connector" type="text" style="width:70%">
+	</div>
+
+	<div class="form-row">
+		<label for="node-input-address"><i class="fa fa-envelope"></i> Address</label>
+		<input type="string" id="node-input-address" style="width:70%">
+		<input type="hidden" id="node-input-addressType">
+	</div>
+
+
+	<div class="form-row">
+		<label for="node-input-mode" style="padding-left:10px; margin-right:-10px;">Request mode</label>
+		<input type="string" id="node-input-mode" style="width: 70%">
+		<input type="hidden" id="node-input-modeType">
+
+	</div>
+
+
+</script>
+
+
+<script type="text/javascript">
+
+	RED.nodes.registerType('velbus-temperature', {
+		category: 'Velbus',
+		color: '#e1444e',
+		defaults: {
+			name: {value: "Temperature", required: false},
+			connector: {value: "", type: "velbus-connector"},
+			mode: {value: 0},
+			modeType: {value: 0}, //the type is the choosen item in the dropdown
+			address: {value: 0x01},
+			addressType: {value: 0x01}, //the type is the choosen item in the dropdown
+		},
+		inputs: 1,
+		outputs: 1,
+		align: 'left',
+		icon: "velbus.png",
+		paletteLabel: "Temperature",
+		label() {
+			return this.name || "Temperature sensor";
+		},
+
+		oneditprepare() {
+
+			/*
+			(valid range: 10…255s)
+			(5…9 = auto send on temperature change >=0.5°)
+			(1…4 = auto send disabled)
+			(0 = no change on auto send interval)
+			 */
+			const modes = [
+				{
+					value: "240",
+					label: "Request temperature each 4 minutes",
+					hasValue: false
+				},
+				{
+					value: "180",
+					label: "Request temperature each 3 minutes",
+					hasValue: false
+				},
+				{
+					value: "120",
+					label: "Request temperature each 2 minutes",
+					hasValue: false
+				},
+				{
+					value: "60",
+					label: "Request temperature each minute",
+					hasValue: false
+				},
+				{
+					value: "30",
+					label: "Request temperature each 30s",
+					hasValue: false
+				},
+				{
+					value: "20",
+					label: "Request temperature each 20s",
+					hasValue: false
+				},
+				{
+					value: "10",
+					label: "Request temperature each 10s",
+					hasValue: false
+				},
+				{
+					value: "9",
+					label: "Request temperature on changes >=0.5",
+					hasValue: false
+				},
+				{
+					value: "1",
+					label: "Request now, auto send disabled",
+					hasValue: false
+				},
+				{
+					value: "0",
+					label: "Request now, no change on send interval",
+					hasValue: false
+				},
+
+			];
+
+			//docs for TypedInput: https://nodered.org/docs/api/ui/typedInput/
+			$("#node-input-mode").typedInput({
+				typeField: $("#node-input-modeType"),
+				types: modes
+			});
+
+			$.get("velbus/get-modules").then(modules => {
+
+				if (modules.length > 0) {
+					modules = JSON.parse(modules);
+					modules = modules.map(i => {
+						return {
+							value: i.address,
+							hasValue: false,
+							label: `${i.name} (${numberToHexString(i.address)})`
+						}
+					});
+				} else {
+					modules = [];
+				}
+
+				modules.splice(0, 0, {
+					value: "custom",
+					label: "Manual (for Hex, use 0x format)",
+					validate(i) {
+						return !isNaN(parseInt(i)) && parseInt(i) > 0
+					}
+				});
+
+				$("#node-input-address").typedInput({
+					typeField: $("#node-input-addressType"),
+					types: modules
+				});
+			});
+
+		}
+
+	});
+
+	function numberToHexString(value) {
+		if (isNaN(value)) {
+			return "NaN"
+		} else {
+			let hex = value.toString(16).toUpperCase();
+			if (hex.length < 2) {
+				hex = "0" + hex;
+			}
+			hex = "0x" + hex;
+			return hex;
+		}
+	}
+
+
+</script>
+
+<script type="text/x-red" data-help-name="velbus-temperature">
+	<p>This node connects to a Velbus module with a temperature sensor.</p>
+	<p>It can:</p>
+	<p>Request the current temperature on the sensor:</p>
+	<ul>
+		<li>each time when the node is triggered.</li>
+		<li>at periodic intervals</li>
+		<li>when the temperature changes above 0.5°C</li>
+	</ul>
+	<p>Receive the temperture with the above requests.</p>
+
+	<h3>Setup</h3>
+	<p>These Velbus nodes require a connection to a Velbus TCP server.
+		Eg: <a href="https://github.com/jeroends/velserv" target="_blank">This one</a> by Jeroends runs like a charm on
+		a Raspberry Pi.</p>
+
+	<h3>Properties</h3>
+	<dl class="message-properties">
+		<dt>Velbus<span class="property-type">Config</span></dt>
+		<dd>Connection with the Velbus TCP server.</dd>
+
+		<dt>Addres <span class="property-type">Number</span></dt>
+		<dd>Choose an address from the list. These are the modules found on your setup. Choose one that has a temperature sensor! <br>
+			If your module is, for some reason, not listed, you can add a channel manually.
+		</dd>
+
+		<dt>Mode<span class="property-type">Number</span></dt>
+		<dd>Choose for periodical requests or only when the request is triggered by the input of the node.</dd>
+
+		<dt>Name <span class="property-type">string</span></dt>
+		<dd>Type your custom name.</dd>
+	</dl>
+
+	<h3>Outputs</h3>
+	<p>The default message payload contains the temperature in °C, but there's also a property
+		<code>fahrenheit</code> and <code>celcius</code> available.</p>
+
+	<h3>FAQ</h3>
+	<ol>
+		<li><b>My Velbus module is not shown in the Address list!</b> You can add your module to this list by updating
+			the
+			file <code>~/.node-red/node_modules/node-red-contrib-velbus/velbus/const.js</code>. <br>
+			Restart Node-red and your module should be found in the list of addresses! Please let me know these kind of
+			errors so I can update my code.
+		</li>
+	</ol>
+
+	<h3>References</h3>
+	<ul>
+		<li>Use <a href="https://github.com/gertst/node-red-contrib-velbus" target="_blank">the projects github
+			repository</a> to check issues and post solutions/requests here.
+		</li>
+		<li><a href="https://twitter.com/GertStalpaert" target="_blank">Contact me on Twitter</a> if you want to share a
+			word about your own setup. ;-)
+		</li>
+	</ul
+</script>

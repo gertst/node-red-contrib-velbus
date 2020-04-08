@@ -168,7 +168,7 @@ class Velbus extends EventEmitter {
 	}
 
 	requestButtonName(address, channel) {
-		console.log("requestButtonName", address, channel);
+		//console.log("requestButtonName", address, channel);
 		let channelBit;
 		if (this.modules.find((item => item.address === address)).requestNameBinary) {
 			channelBit = channel
@@ -187,13 +187,14 @@ class Velbus extends EventEmitter {
 
 	setPartName(index, packet) {
 
-		 //console.log("setPartName", index, packet.address, this.modules);
-
-		//if (databytes[3] === 255) return;
 		const databytes = packet.getDataBytes();
-		// const channel = this.channelFromByte(databytes[1]);
 		let channel;
-		if (this.modules.find((item => item.address === packet.address)).requestNameBinary) {
+		const found = this.modules.find((item => item.address === packet.address));
+		if (!found) {
+			this.emit("onError", `Module with address ${packet.address} could not be found. Please try to deploy first.`);
+			return
+		}
+		if (found.requestNameBinary) {
 			channel = databytes[1];
 		} else {
 			channel = this.channelFromByte(databytes[1])
@@ -208,18 +209,15 @@ class Velbus extends EventEmitter {
 
 
 
-		//if (!this.buttonNames[packet.address][channel].end) {
 		this.buttonNames[packet.address][channel][index] = "";
-		//const dataLength = Math.min(9, databytes.length); //to bugfix the max length
-		//console.log("databytes.length", databytes.length);
-		for (let i = 2; i < databytes.length; i++) {
+		const dataLength = Math.min(9, databytes.length); //to bugfix the max length
+		//console.log("databytes.length", databytes.length, "<>", dataLength);
+		for (let i = 2; i < dataLength; i++) {
 			if (databytes[i] !== 255) {
 				this.buttonNames[packet.address][channel][index] += String.fromCharCode(databytes[i]);
-				// console.log(`this.buttonNames[${packet.address}][${channel}]`, this.buttonNames[packet.address][channel]);
+				//console.log(`this.buttonNames[${packet.address}][${channel}]`, this.buttonNames[packet.address][channel]);
 			} else {
-				//console.log("char 255: end??");
-				//this.buttonNames[packet.address][channel].end = true;
-				//this.emit("onButtonName", packet.address, channel, this.buttonNames[packet.address][channel].join(""))
+				break
 			}
 		}
 
