@@ -69,10 +69,18 @@ Next modules can be controlled by simulating button presses.
 
 ##### To Do
 - Although the generic nodes can manage all Velbus commands and messages, I want to 
-  add som dedicated modules for dimmers, relays, Memo texts, Temperature sensors, ...
+  add som dedicated modules for dimmers, relays, Memo texts, ...
 
 
 ## Example scripts
+
+- Using the Send Raw Bytes node to update the time on Velbus:
+	- Overview:
+	![Nodes overview](/readme-assets/send-raw-bytes-example-overview.png)
+	- Preparing the input message by using a Fuction node:
+	![Function node details](/readme-assets/send-raw-bytes-example-function-node-details.png)
+	- Adding the Send Raw Bytes details:
+	![Nodes](/readme-assets/send-raw-bytes-example-edit-panel.png)
 
 - Check [this Velbus Forum thread](https://forum.velbus.eu/t/node-red-integration/15632) for updated examples soon.
  
