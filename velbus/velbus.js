@@ -69,14 +69,17 @@ class Velbus extends EventEmitter {
 				} else if (packet.command === constants.commands.COMMAND_MODULE_TYPE && packet.rawPacket.length >= 10) {
 					let metaData = constants.moduleMetaData.find(i => i.type === packet.getDataByte(1));
 					if (metaData) {
-						this.modules.push({
-							name: metaData.name,
-							address: packet.address,
-							hasInput: metaData.hasInput,
-							nrOfChannels: metaData.nrOfChannels,
-							requestNameBinary: metaData.requestNameBinary,
-							extraAddresses: [],
-						});
+						//add module if not yet present
+						if (!this.modules.find(i => i.address === packet.address)) {
+							this.modules.push({
+								name: metaData.name,
+								address: packet.address,
+								hasInput: metaData.hasInput,
+								nrOfChannels: metaData.nrOfChannels,
+								requestNameBinary: metaData.requestNameBinary,
+								extraAddresses: [],
+							});
+						}
 					} else {
 						console.log("WARNING: Module of type " + packet.getDataByte(1) + " is unknown.");
 					}

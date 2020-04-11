@@ -38,7 +38,22 @@ __If you are using this module, please let me know! Curious about your findings/
 	- There's a new node to receive all Velbus messages
 - 2020/04/08
 	- A new Temperature node	
-	
+- 2020/04/11
+	- Quite some modules had wrong configuration data, but thanks to the great dedication of [MDAR](https://forum.velbus.eu/u/mdar/summary), 
+	  who did some testing for modules I don't have, these issues got fixed!
+	  - VMBGP1
+      - VMBGP2
+      - VMBGP4
+      - VMBGPO
+      - VMBGPOD
+      - VMBPIRO
+      - VMBGP4PIR
+      - VMBRFR8S
+      - VMBMETEO
+      - VMB4AN
+      - VMBVP01
+   - Bugfix: in some circumstances modules were found twice. Thanks Ggaljoen to notify me.
+		
 ## Implemented Velbus modules:
 
 ##### Tested input modules
