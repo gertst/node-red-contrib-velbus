@@ -53,6 +53,7 @@ __If you are using this module, please let me know! Curious about your findings/
       - VMB4AN
       - VMBVP01
    - Bugfix: in some circumstances modules were found twice. Thanks Ggaljoen to notify me.
+   - Added an example of a Send Raw Bytes node
 		
 ## Implemented Velbus modules:
 
