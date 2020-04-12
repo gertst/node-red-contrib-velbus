@@ -1,6 +1,7 @@
 let constants = require('../velbus/const');
 let commandInfo = require('../velbus/commandInfo');
 let Packet = require('../velbus/packet');
+let mustache = require("mustache");
 
 module.exports = function (RED) {
 	"use strict";
@@ -124,6 +125,8 @@ module.exports = function (RED) {
 				dataBytesString = this.dataBytesType + " " + this.dataBytes;
 			}
 			//console.log("dataBytesString: " + dataBytesString);
+
+			dataBytesString = mustache.render(dataBytesString, msg.payload); //parse mustache tags
 
 			packet.setDataBytes(this.stringToArray(dataBytesString));
 			//console.log(`send: ${packet.toString()}`);

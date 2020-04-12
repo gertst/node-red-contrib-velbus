@@ -1,6 +1,6 @@
 {
 	"name": "node-red-contrib-velbus",
-	"version": "0.2.04",
+	"version": "0.2.05",
 	"private": false,
 	"scripts": {},
 	"node-red": {
@@ -16,7 +16,9 @@
 		"events": "^3.0.0"
 	},
 	"description": "A Velleman Velbus home automation plugin for Node-red.",
-	"devDependencies": {},
+	"devDependencies": {
+		"mustache": "^4.0.1"
+	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/gertst/node-red-contrib-velbus.git"

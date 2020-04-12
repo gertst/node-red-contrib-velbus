@@ -139,10 +139,10 @@
 	<p>This node connects to any Velbus module it can find on your setup. It can receive any event.</p>
 	<p>Some examples:</p>
 	<ul>
-		<li>Receive the temperature of a sensor</li>
-		<li>Receive the state of a Dimmer.</li>
-		<li>Receive the state of a Relay.</li>
-		<li>Get the led color of an edge-lit touch panel.</li>
+		<html>Receive the temperature of a sensor</html>
+		<html>Receive the state of a Dimmer.</html>
+		<html>Receive the state of a Relay.</html>
+		<html>Get the led color of an edge-lit touch panel.</html>
 	</ul>
 	<p>Typically, you first have to send a request command (Eg. by using the Set Raw Bytes node) to get these kind of messages.</p>
 
@@ -173,24 +173,24 @@
 	<h3>Outputs</h3>
 	<p>The message payload contains a JSON with these properties: </p>
 	<ul>
-	<li>channel: as decimal number - to have the hex notation, use <code>channel.toString(16)</code></li>
-	<li>command: as decimal number - to have the hex notation, use <code>command.toString(16)</code></li>
-	<li>commandName: as string</li>
-	<li>dataBytesArray: all data bytes as an array of decimal numbers</li>
-	<li>rawBytesArray: the entire Packet as an array of decimal numbers</li>
+	<html>channel: as decimal number - to have the hex notation, use <code>channel.toString(16)</code></html>
+	<html>command: as decimal number - to have the hex notation, use <code>command.toString(16)</code></html>
+	<html>commandName: as string</html>
+	<html>dataBytesArray: all data bytes as an array of decimal numbers</html>
+	<html>rawBytesArray: the entire Packet as an array of decimal numbers</html>
 	</ul>
 
 	<h3>FAQ</h3>
 	<ol>
-		<li><b>My Velbus module is not shown in the Address list!</b> You can add your module to this list by updating the
+		<html><b>My Velbus module is not shown in the Address list!</b> You can add your module to this list by updating the
 			file <code>~/.node-red/node_modules/node-red-contrib-velbus/velbus/const.js</code>. <br>
 			Restart Node-red and your module should be found in the list of addresses! Please let me know these kind of errors so I can update my code.
-		</li>
+		</html>
 	</ol>
 
 	<h3>References</h3>
 	<ul>
-		<li>Use <a href="https://github.com/gertst/node-red-contrib-velbus" target="_blank">the projects github repository</a> to check issues and post solutions/requests here.</li>
-		<li><a href="https://twitter.com/GertStalpaert" target="_blank">Contact me on Twitter</a> if you want to share a word about your own setup. ;-)</li>
+		<html>Use <a href="https://github.com/gertst/node-red-contrib-velbus" target="_blank">the projects github repository</a> to check issues and post solutions/requests here.</html>
+		<html><a href="https://twitter.com/GertStalpaert" target="_blank">Contact me on Twitter</a> if you want to share a word about your own setup. ;-)</html>
 	</ul
 </script>

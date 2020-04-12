@@ -52,9 +52,9 @@
 	</div>
 
 	<!--<div class="form-row">-->
-		<!--<label for="node-input-dataBytes"><i class="fa fa-dot-circle-o"></i> Data Bytes</label>-->
-		<!--<span class="first-byte"></span><span> + </span>-->
-		<!--<input type="text" id="node-input-dataBytes" value="0x01" style="width: 60%">-->
+	<!--<label for="node-input-dataBytes"><i class="fa fa-dot-circle-o"></i> Data Bytes</label>-->
+	<!--<span class="first-byte"></span><span> + </span>-->
+	<!--<input type="text" id="node-input-dataBytes" value="0x01" style="width: 60%">-->
 	<!--</div>-->
 	<p>&nbsp;</p>
 	<div class="form-tips">
@@ -62,8 +62,8 @@
 		Add "0x" to use hexadecimal values. A mix of decimal and hexadecimal is allowed. Eg:
 		<pre>0 0xFB 0x10</pre>
 		<br>
-		<i>See info box and <a href="https://flows.nodered.org/node/node-red-contrib-velbus" target="_blank">Readme</a> for more details about Data Bytes.</i><br>
-		<i>Find the data byte info for all commands <a href="https://github.com/velbus/moduleprotocol" target="_blank">at the Github page of Velbus</a>.</i>
+		<i>See info box and <a href="https://flows.nodered.org/node/node-red-contrib-velbus" target="_blank">Readme</a>
+			for more details about Data Bytes.</i><br>
 	</div>
 
 
@@ -78,7 +78,7 @@
 		defaults: {
 			name: {value: "Send Raw Bytes", required: false},
 			connector: {value: "", type: "velbus-connector"},
-			dataBytes: {value: 0xEE},
+			dataBytes: {value: 0x02},
 			dataBytesType: {value: 0xEE}, //the type is the choosen item in the dropdown
 			address: {value: 0x00},
 			addressType: {value: 0x00}, //the type is the choosen item in the dropdown
@@ -107,17 +107,17 @@
 					value: "MANUAL",
 					label: "Manual input",
 				});
-				commands.splice(0, 0,{
+				commands.splice(0, 0, {
 					value: "DATABYTES",
 					hasValue: false,
 					label: `Data bytes from msg.dataBytes`
 				});
-				commands.splice(0, 0,{
+				commands.splice(0, 0, {
 					value: "TOPIC+PAYLOAD",
 					hasValue: false,
 					label: `Data bytes from msg.topic + msg.payload`
 				});
-				commands.splice(0, 0,{
+				commands.splice(0, 0, {
 					value: "PAYLOAD",
 					hasValue: false,
 					label: `Data bytes from msg.payload`
@@ -127,9 +127,9 @@
 				$("#node-input-dataBytes").typedInput({
 					typeField: $("#node-input-dataBytesType"),
 					types: commands
-				}).on('change', function(type, value) {
+				}).on('change', function (type, value) {
 					setCommandInfo(commandInfoArray);
-				} );
+				});
 
 				//fix width of input
 				$(".red-ui-typedInput-input").width("96%");
@@ -204,21 +204,39 @@
 			let commandsFound = commandInfoArray.filter(i => i.id === parseInt($("#node-input-dataBytesType").val()));
 			if (commandsFound && commandsFound.length > 0) {
 				$("#command-info-title").text(commandsFound[0].name);
-				li = "";
+				html = "";
 				commandsFound.forEach((command, index) => {
 					if (index > 0) {
-						li += "<p>OR</p>";
+						html += "<p>OR</p>";
 					}
-					li += "<ol>";
+					html += "<ol>";
 					Object.keys(command).forEach(key => {
 						if (key.indexOf("databyte") > -1) {
-							li += `<li>${key}: ${command[key]}</li>`;
+							html += `<li>${key}: ${command[key]}</li>`;
 						}
 					});
-					li += "</ol>"
+					html += "</ol>";
 
 				});
-				$("#command-info-body").html(li);
+				html += "<p><i>This info is a semi-auto-generated, incomplete list, parsed from Velbus PDFs and might have inaccurate data. " +
+						"<a href='https://forum.velbus.eu/t/we-need-a-structured-list-of-all-messages-and-commands/' target='_blank'>More info</a></i></p>"
+				html += "<p><i>More details info for all commands <a href=\"https://github.com/velbus/moduleprotocol\" target=\"_blank\">at the Github page of Velbus</a>.</i></p>"
+				$("#command-info-body").html(html);
+			} else if ($("#node-input-dataBytesType").val() === "MANUAL") {
+				$("#command-info-title").text("Manual input");
+				$("#command-info-body").html(
+						`You can use mustache formatting. See example in the
+						<a href="https://flows.nodered.org/node/node-red-contrib-velbus" target="_blank">Readme</a>.
+				`);
+			} else if ($("#node-input-dataBytesType").val() === "DATABYTES") {
+				$("#command-info-title").text("DataBytes ");
+				$("#command-info-body").html(`Data bytes from msg.dataBytes`);
+			} else if ($("#node-input-dataBytesType").val() === "TOPIC+PAYLOAD") {
+				$("#command-info-title").text("Topic + Payload");
+				$("#command-info-body").html(`Data bytes from msg.topic + msg.payload`);
+			} else if ($("#node-input-dataBytesType").val() === "PAYLOAD") {
+				$("#command-info-title").text("Payload");
+				$("#command-info-body").html(`Data bytes from msg.payload`);
 			}
 		}
 	}
@@ -245,7 +263,8 @@
 	<ul>
 		<li>Switch on a relay.</li>
 		<li>Dim a light to 50% over 1 minute.</li>
-		<li>Periodically send the date and time to your Velbus setup. I had to do this because the clock shifts over time.</li>
+		<li>Periodically send the date and time to your Velbus setup. I had to do this because the clock shifts over
+		time.</li>
 		<li>Send a memo text to the OLED display of your VMBELO Edge-lit touch panel.</li>
 		<li>Request the temperature of a sensor.</li>
 	</ul>
@@ -253,7 +272,8 @@
 
 	<h3>Setup</h3>
 	<p>These Velbus nodes require a connection to a Velbus TCP server.
-		Eg: <a href="https://github.com/jeroends/velserv" target="_blank">This one</a> by Jeroends runs like a charm on a Raspberry Pi.</p>
+		Eg: <a href="https://github.com/jeroends/velserv" target="_blank">This one</a> by Jeroends runs like a charm on
+		a Raspberry Pi.</p>
 
 	<h3>Properties</h3>
 	<dl class="message-properties">
@@ -261,37 +281,27 @@
 		<dd>Connection with the Velbus TCP server.</dd>
 
 		<dt>Priority <span class="property-type">Number</span></dt>
-		<dd>High or Low</dd>
+		<dd>High, Low, input coming from msg.payload.priority or from msg.priority</dd>
 
 		<dt>RTR <span class="property-type">Boolean</span></dt>
-		<dd>True or False</dd>
+		<dd>True, False, or input coming from msg.payload.rtr or msg.rtr</dd>
 
 		<dt>Addres <span class="property-type">Number</span></dt>
-		<dd>Choose an address from the list. These are the modules found on your setup that have one or more push buttons. <br>
-			For generic Commands on the bus, choose <code>Generic (0x00)</code>.
-			If your module is, for some reason, not listed, you can add a channel manually.</dd>
-
-		<dt>Command <span class="property-type">Number</span></dt>
-		<dd>Choose a command from the list. If the command is not listed, you can add a command byte manually.</dd>
+		<dd>Choose an address from the list. These are the modules found on your setup that have one or more push
+			buttons. <br>
+			For generic Commands on the bus, choose <code>Generic (0x00)</code>.<br>
+			If your module is, for some reason, not listed, you can add a channel manually.
+			You can also get the input from msg.address or msg.payload.address
+		</dd>
 
 		<dt>Data Bytes <span class="property-type">String</span></dt>
 		<dd><p>A space separated list of numbers.</p>
-			<p>You don't have to add the first command byte anymore as it will be added for you from the Command property.<br>
-			You can add decimal numbers or hexadecimal numbers (using the 0x notation).</p>
+			<p>You can add decimal numbers or hexadecimal numbers (using the 0x notation).</p>
 			<p><b>Dynamic data bytes</b>
-			You can feed the data bytes with dynamic data by using JSON keys in the input node and Mustache syntax in the
-				Data Bytes input:<br>
-				E.g.:</p>
-			<ul>
-				<li>To send the current day and time, use the command COMMAND_REAL_TIME_CLOCK and this string for the data
-					bytes:
-					<code>{{day}} {{hour}} {{minute}}</code>
-				<li>
-					The input message payload of type JSON should be:
-					<code>{"day":1,"hour":7,"minute":45}</code><br>
-					Of course you can make this date dynamic by using a Function node. See example in the
-					<a href="https://flows.nodered.org/node/node-red-contrib-velbus" target="_blank">Readme</a>.
-				</li>
+				Several options are possible:<br>
+				You can feed the data bytes with dynamic data by using topic + payload data, or by using JSON keys in the input node and Mustache syntax
+				in the Data Bytes input:<br>
+				See example in the <a href="https://flows.nodered.org/node/node-red-contrib-velbus" target="_blank">Readme</a>.
 			</ul>
 		</dd>
 
@@ -301,20 +311,26 @@
 
 	<h3>Inputs</h3>
 	<p>You can trigger this node by injecting a message payload. <br>
-		Any payload will do, but if you want to send dynamic data, use the JSON format as shown above.
+		Any payload will do, but if you want to send dynamic data, use one of the different options for Data Bytes.
 	</p>
 
 	<h3>FAQ</h3>
 	<ol>
-		<li><b>My Velbus module is not shown in the Address list!</b> You can add your module to this list by updating the
-			file <code>~/.node-red/node_modules/node-red-contrib-velbus/velbus/const.js</code>. <br>
-			Restart Node-red and your module should be found in the list of addresses! Please let me know these kind of errors so I can update my code.
+		<li><b>My Velbus module is not shown in the Address list!</b> You can add your module to this list by updating
+		the file <code>~/.node-red/node_modules/node-red-contrib-velbus/velbus/const.js</code>. <br>
+		Restart Node-red and your module should be found in the list of addresses! Please let me know these kind of
+		errors so I can update my code.
 		</li>
+		<li>The yellow info panel provides some more info about the currently selected command.</li>
 	</ol>
 
 	<h3>References</h3>
 	<ul>
-		<li>Use <a href="https://github.com/gertst/node-red-contrib-velbus" target="_blank">the projects github repository</a> to check issues and post solutions/requests here.</li>
-		<li><a href="https://twitter.com/GertStalpaert" target="_blank">Contact me on Twitter</a> if you want to share a word about your own setup. ;-)</li>
+		<li>Use <a href="https://github.com/gertst/node-red-contrib-velbus" target="_blank">the projects github
+			repository</a> to check issues and post solutions/requests here.
+		</li>
+		<li><a href="https://twitter.com/GertStalpaert" target="_blank">Contact me on Twitter</a> if you want to share
+		a word about your own setup. ;-)
+		</li>
 	</ul>
 </script>

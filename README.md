@@ -55,7 +55,9 @@ __If you are using this module, please let me know! Curious about your findings/
    - Bugfix: in some circumstances modules were found twice. Thanks Ggaljoen to notify me.
    - Added an example of a Send Raw Bytes node
 -2020/04/12
-   - Fix with of typed input fields.   
+   - Fix width of typed input fields.
+   - BREAKING: New UX for the Send Raw Bytes node 
+   - 1st step to have more info available for each command  
 		
 ## Implemented Velbus modules:
 
@@ -84,7 +86,8 @@ Next modules can be controlled by simulating button presses.
 	![Function node details](/readme-assets/send-raw-bytes-example-function-node-details.png)
 	- Adding the Send Raw Bytes details:
 	![Nodes](/readme-assets/send-raw-bytes-example-edit-panel.png)
-
+	- Copy nodes from here:
+	``[{"id":"610806f.e6af4f8","type":"function","z":"be32b5b5.08f898","name":"inject Date","func":"//get the ’date from the payload of the input message\nlet d = new Date(msg.payload);\n\n/*\nThis is how Velbus expects the day values:\nH’00’ Monday\nH’01’ Tuesday\nH’02’ Wednesday\nH’03’ Thursday\nH’04’ Friday\nH’05’ Saterday\nH’06’ Sunday\n*/\n\n/*\nBut the standard Date.getDay() function has the American notation,\nso we have to convert it first:\n*/\n//substract a day to go from Sunday as first day to Monday\nlet day = d.getDay() - 1;\n//if we have Sunday, correct it to 6\nif (day === -1) day = 6;\n\n\n// create a new payload, with the 3 keys\n// we need: day, hour and minute\nlet payload = {\n    day: day, \n    hour: d.getHours(), \n    minute: d.getMinutes()\n}\n\n//replace the old payload with our new one\nmsg.payload = payload;\n\n//return the message\nreturn msg;","outputs":1,"noerr":0,"x":350,"y":140,"wires":[["953ad491.928dc8"]]},{"id":"739d47ca.297f48","type":"inject","z":"be32b5b5.08f898","name":"each day at 6","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"00 06 * * *","once":false,"onceDelay":0.1,"x":120,"y":200,"wires":[["610806f.e6af4f8"]]},{"id":"57c66aa9.d3ef54","type":"inject","z":"be32b5b5.08f898","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":false,"onceDelay":0.1,"x":100,"y":140,"wires":[["610806f.e6af4f8"]]},{"id":"953ad491.928dc8","type":"velbus-send-raw-bytes","z":"be32b5b5.08f898","name":"Raw Bytes","connector":"c152af36.a02ea","dataBytes":"{{day}} {{hour}} {{minute}}","dataBytesType":"216","address":"","addressType":"0","priority":"251","rtr":"0","x":540,"y":140,"wires":[]},{"id":"c152af36.a02ea","type":"velbus-connector","z":"","ip":"raspberrypi.local","port":"6000"}]``
 - Check [this Velbus Forum thread](https://forum.velbus.eu/t/node-red-integration/15632) for updated examples soon.
  
 ## Contact
