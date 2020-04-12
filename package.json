@@ -13,8 +13,7 @@
 		}
 	},
 	"dependencies": {
-		"events": "^3.0.0",
-		"mustache": "^3.0.1"
+		"events": "^3.0.0"
 	},
 	"description": "A Velleman Velbus home automation plugin for Node-red.",
 	"devDependencies": {},

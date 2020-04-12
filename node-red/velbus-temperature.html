@@ -118,6 +118,9 @@
 				types: modes
 			});
 
+			//fix width of input
+			$(".red-ui-typedInput-input").width("96%");
+
 			$.get("velbus/get-modules").then(modules => {
 
 				if (modules.length > 0) {
@@ -145,6 +148,9 @@
 					typeField: $("#node-input-addressType"),
 					types: modules
 				});
+
+				//fix width of input
+				$(".red-ui-typedInput-input").width("96%");
 			});
 
 		}

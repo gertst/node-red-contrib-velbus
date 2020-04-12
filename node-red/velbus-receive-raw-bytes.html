@@ -52,7 +52,7 @@
 
 		oneditprepare() {
 
-			$.get(`velbus/get-commands-list`).then(commands => {
+			$.get(`velbus/get-commands-list-receive`).then(commands => {
 				commands = JSON.parse(commands);
 				commands.sort((a, b) => {
 					return a.label > b.label ? 1 : -1
@@ -110,6 +110,9 @@
 					typeField: $("#node-input-addressType"),
 					types: modules
 				});
+
+				//fix width of input
+				$(".red-ui-typedInput-input").width("96%");
 			});
 
 		}

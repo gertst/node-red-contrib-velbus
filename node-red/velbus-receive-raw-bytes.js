@@ -73,7 +73,7 @@ module.exports = function (RED) {
 
 	});
 
-	RED.httpAdmin.get(`/velbus/get-commands-list`, function (req, res) {
+	RED.httpAdmin.get(`/velbus/get-commands-list-receive`, function (req, res) {
 
 		const commandlist = Object.keys(constants.commands).map(key => {
 			return {
