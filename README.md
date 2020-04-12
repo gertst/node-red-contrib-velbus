@@ -54,7 +54,7 @@ __If you are using this module, please let me know! Curious about your findings/
       - VMBVP01
    - Bugfix: in some circumstances modules were found twice. Thanks Ggaljoen to notify me.
    - Added an example of a Send Raw Bytes node
--2020/04/12
+- 2020/04/12
    - Fix width of typed input fields.
    - BREAKING: New UX for the Send Raw Bytes node 
    - 1st step to have more info available for each command  
