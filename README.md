@@ -58,6 +58,10 @@ __If you are using this module, please let me know! Curious about your findings/
    - Fix width of typed input fields.
    - BREAKING: New UX for the Send Raw Bytes node 
    - 1st step to have more info available for each command  
+- 2020/04/13
+   - Bugfix: moved devDependency "mustache" to dependency.
+   - cleanup old references and files
+   
 		
 ## Implemented Velbus modules:
 
