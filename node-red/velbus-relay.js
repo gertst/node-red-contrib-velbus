@@ -99,7 +99,7 @@ module.exports = function (RED) {
 	RED.httpAdmin.get(`/velbus/get-dimmer-modules`, function (req, res, next) {
 
 		if (global.velbus && global.velbus.modules) {
-			res.end(JSON.stringify(global.velbus.modules.filter(i => i.nrOfDimmers > 0)));
+			res.end(JSON.stringify(global.velbus.modules.filter(i => i.hasDimmer)));
 		} else {
 			res.end([]);
 		}

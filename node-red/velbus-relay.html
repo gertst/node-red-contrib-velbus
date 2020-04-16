@@ -1,4 +1,4 @@
-<script type="text/x-red" data-template-name="velbus-temperature">
+<script type="text/x-red" data-template-name="velbus-relay">
 
 	<div class="form-row">
 		<label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
@@ -16,11 +16,34 @@
 		<input type="hidden" id="node-input-addressType">
 	</div>
 
+	<div class="form-row">
+		<label for="node-input-channel"><i class="fa fa-dot-circle-o"></i> Channel</label>
+		<select id="node-input-channel" style="width: 70%">
+			<option value="1">Channel 1</option>
+			<option value="2">Channel 2</option>
+			<option value="3">Channel 3</option>
+			<option value="4">Channel 4</option>
+			<option value="5">Channel 5</option>
+			<option value="6">Channel 6</option>
+			<option value="7">Channel 7</option>
+			<option value="8">Channel 8</option>
+			<option value="9">Channel 9</option>
+			<option value="10">Channel 10</option>
+			<option value="11">Channel 11</option>
+			<option value="12">Channel 12</option>
+			<option value="13">Channel 13</option>
+			<option value="14">Channel 14</option>
+			<option value="15">Channel 15</option>
+			<option value="16">Channel 16</option>
+		</select>
+
+	</div>
+
 
 	<div class="form-row">
-		<label for="node-input-mode" style="padding-left:10px; margin-right:-10px;">Request mode</label>
-		<input type="string" id="node-input-mode" style="width: 70%">
-		<input type="hidden" id="node-input-modeType">
+		<label for="node-input-mode" style="padding-left:10px; margin-right:-10px;">Commands</label>
+		<input type="string" id="node-input-commands" style="width: 70%">
+		<input type="hidden" id="node-input-commandsType">
 
 	</div>
 
@@ -30,98 +53,64 @@
 
 <script type="text/javascript">
 
-	RED.nodes.registerType('velbus-temperature', {
+	RED.nodes.registerType('velbus-relay', {
 		category: 'Velbus',
 		color: '#e1444e',
 		defaults: {
-			name: {value: "Temperature", required: false},
+			name: {value: "", required: false},
 			connector: {value: "", type: "velbus-connector"},
-			mode: {value: 0},
-			modeType: {value: 0}, //the type is the choosen item in the dropdown
+			commands: {value: 0},
+			commandsType: {value: 0}, //the type is the choosen item in the dropdown
 			address: {value: 0x01},
 			addressType: {value: 0x01}, //the type is the choosen item in the dropdown
+			channel: {value: 0x01},
+
 		},
 		inputs: 1,
 		outputs: 1,
 		align: 'left',
-		icon: "temperature.svg",
-		paletteLabel: "Temperature",
+		icon: "relay.svg",
+		paletteLabel: "Relay",
 		label() {
-			return this.name || "Temperature sensor";
+			return this.name || `Relay @ ${numberToHexString(this.addressType)}`;
 		},
 
 		oneditprepare() {
 
-			/*
-			(valid range: 10…255s)
-			(5…9 = auto send on temperature change >=0.5°)
-			(1…4 = auto send disabled)
-			(0 = no change on auto send interval)
-			 */
-			const modes = [
+
+			const commands = [
 				{
-					value: "240",
-					label: "Request temperature each 4 minutes",
+					value: "VALUE",
+					label: "Dim to: (%) ",
+					hasValue: true,
+					validate: function(i) {
+						i = parseInt(i);
+						return !isNaN(i) && i >= 0 && i <= 100;
+					}
+				},
+				{
+					value: "PAYLOAD",
+					label: "Use msg.payload as relay value (0-100)",
 					hasValue: false
 				},
 				{
-					value: "180",
-					label: "Request temperature each 3 minutes",
+					value: "TOGGLE",
+					label: "Toggle relay",
 					hasValue: false
-				},
-				{
-					value: "120",
-					label: "Request temperature each 2 minutes",
-					hasValue: false
-				},
-				{
-					value: "60",
-					label: "Request temperature each minute",
-					hasValue: false
-				},
-				{
-					value: "30",
-					label: "Request temperature each 30s",
-					hasValue: false
-				},
-				{
-					value: "20",
-					label: "Request temperature each 20s",
-					hasValue: false
-				},
-				{
-					value: "10",
-					label: "Request temperature each 10s",
-					hasValue: false
-				},
-				{
-					value: "9",
-					label: "Request temperature on changes >=0.5",
-					hasValue: false
-				},
-				{
-					value: "1",
-					label: "Request now, auto send disabled",
-					hasValue: false
-				},
-				{
-					value: "0",
-					label: "Request now, no change on send interval",
-					hasValue: false
-				},
+				}
 
 			];
 
 			//docs for TypedInput: https://nodered.org/docs/api/ui/typedInput/
-			$("#node-input-mode").typedInput({
-				typeField: $("#node-input-modeType"),
-				types: modes
+			$("#node-input-commands").typedInput({
+				typeField: $("#node-input-commandsType"),
+				types: commands
 			});
 
 			//fix width of input
 			$(".red-ui-typedInput-input").width("96%");
 
-			$.get("velbus/get-temperature-modules").then(modules => {
+			$.get("velbus/get-relay-modules").then(modules => {
 
 				if (modules.length > 0) {
 					modules = JSON.parse(modules);
@@ -173,16 +162,15 @@
 
 </script>
 
-<script type="text/x-red" data-help-name="velbus-temperature">
-	<p>This node connects to a Velbus module with a temperature sensor.</p>
+<script type="text/x-red" data-help-name="velbus-relay">
+	<p>This node connects to a Velbus relay module.</p>
 	<p>It can:</p>
-	<p>Request the current temperature on the sensor:</p>
 	<ul>
-		<li>each time when the node is triggered.</li>
-		<li>at periodic intervals</li>
-		<li>when the temperature changes above 0.5°C</li>
+		<li>toggle the relay on/off</li>
+		<li>dim to a given percentage</li>
+		<li>use the payload to set the percentage</li>
+		<li>output the current dim percentage each time when it changes</li>
 	</ul>
-	<p>Receive the temperture with the above requests.</p>
 
 	<h3>Setup</h3>
 	<p>These Velbus nodes require a connection to a Velbus TCP server.
@@ -191,24 +179,33 @@
 
 	<h3>Properties</h3>
 	<dl class="message-properties">
+		<dt>Name <span class="property-type">string</span></dt>
+		<dd>Type your custom name.</dd>
+
 		<dt>Velbus<span class="property-type">Config</span></dt>
 		<dd>Connection with the Velbus TCP server.</dd>
 
 		<dt>Address <span class="property-type">Number</span></dt>
-		<dd>Choose an address from the list. These are the modules with a temperature sensor found on your setup. <br>
+		<dd>Choose an address from the list. These are the relay modules found on your setup.<br>
 			If your module is, for some reason, not listed, you can add an address manually.
 		</dd>
 
-		<dt>Mode<span class="property-type">Number</span></dt>
-		<dd>Choose for periodical requests or only when the request is triggered by the input of the node.</dd>
+		<dt>Channel<span class="property-type">List</span></dt>
+		<dd>Choose the relay channel.</dd>
 
-		<dt>Name <span class="property-type">string</span></dt>
-		<dd>Type your custom name.</dd>
+		<dt>Commands<span class="property-type">List</span></dt>
+		<dd>
+			<p><strong>Dim to (%)</strong>: Set the brightness to a given percentage</p>
+			<p><strong>Use msg.payload as relay value (0-100)</strong>: Use the message' payload</p>
+			<p><strong>Toggle relay</strong>: If the relay is of, set the brightness to 100%, otherwise set brightness to 0%</p>
+		</dd>
+
+
 	</dl>
 
 	<h3>Outputs</h3>
-	<p>The default message payload contains the temperature in °C, but there's also a property
-		<code>fahrenheit</code> and <code>celcius</code> available.</p>
+	<p>The default message payload contains the relay brightness, but there's also a property
+		<code>on</code> of type Boolean.</p>
 
 	<h3>FAQ</h3>
 	<ol>

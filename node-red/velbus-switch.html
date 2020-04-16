@@ -199,11 +199,11 @@
 
 		// SET MODULES AS OPTIONS
 		modules.forEach(function (module) {
-			if (module.hasInput && module.nrOfChannels > 0) {
+			if (module.nrOfButtons > 0) {
 				$('#node-input-address').append(`
 					<option
 						value="${module.address}"
-						data-nr-of-channels="${module.nrOfChannels}"
+						data-nr-of-channels="${module.nrOfButtons}"
 					>
 						${module.name} @ ${numberToHexString(module.address)}
 					</option>`);
@@ -261,7 +261,7 @@
 		<dt>Outputs <span class="property-type">List</span></dt>
 		<dd><i>See the below section Outputs for more details.</i></dd>
 
-		<dt>Addres <span class="property-type">number</span></dt>
+		<dt>Address <span class="property-type">number</span></dt>
 		<dd>Choose an address from the list. These are the modules found on your setup that have one or more push buttons.</dd>
 
 		<dt>Channel <span class="property-type">number</span></dt>
@@ -313,7 +313,7 @@
 		<li><b>My Velbus module is not shown in the Address list!</b> I only own a limited number of modules and could only test a few.
 			So your module might not be categorized as Push button module. You can add or change this yourself by updating the
 			file <code>~/.node-red/node_modules/node-red-contrib-velbus/velbus/const.js</code>. <br>
-			Find your module (or add it) and make sure the property <code>nrOfChannels</code> is correct and the property <code>hasInput</code> is set to true.<br>
+			Find your module (or add it) and make sure the property <code>nrOfButtons</code> (=the number of channels) is correct.<br>
 			Restart Node-red and your module should be found in the list of addresses! Please let me know these kind of errors so I can update my code.
 		</li>
 	<li><b>The number of channels is wrong!</b> See Above.</li>

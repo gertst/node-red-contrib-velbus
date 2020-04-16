@@ -133,10 +133,19 @@
 					}
 				});
 
-				$("#node-input-address").typedInput({
+				const $nodeInputAddress = $("#node-input-address");
+				$nodeInputAddress.typedInput({
 					typeField: $("#node-input-addressType"),
 					types: modules
+				}).on('change', function(type, value) {
+					const address = isNaN(parseInt(type)) ? parseInt(value) : parseInt(type);
+					setNrOfChannelsForAddress(modules, address);
 				});
+
+				const type = $nodeInputAddress.typedInput("type");
+				const value = $nodeInputAddress.typedInput("value");
+				const address = isNaN(parseInt(type)) ? parseInt(value) : parseInt(type);
+				setNrOfChannelsForAddress(modules, address);
 
 				//fix width of input
 				$(".red-ui-typedInput-input").width("96%");
@@ -145,6 +154,22 @@
 		}
 
 	});
+
+	function setNrOfChannelsForAddress(modules, address) {
+		const module = modules.find(i => i.address === address);
+		let nrOfChannels = 999;
+		if (module) {
+			nrOfChannels = module.nrOfDimmers;
+		}
+		$("#node-input-channel option").each((index, el) => {
+			//console.log( index + ": " + $( that ).text() );
+			if (index >= nrOfChannels) {
+				$(el).attr("disabled", "disabled");
+			} else {
+				$(el).removeAttr("disabled");
+			}
+		});
+	}
 
 	function numberToHexString(value) {
 		if (isNaN(value)) {
@@ -179,24 +204,33 @@
 
 	<h3>Properties</h3>
 	<dl class="message-properties">
+		<dt>Name <span class="property-type">string</span></dt>
+		<dd>Type your custom name.</dd>
+
 		<dt>Velbus<span class="property-type">Config</span></dt>
 		<dd>Connection with the Velbus TCP server.</dd>
 
-		<dt>Addres <span class="property-type">Number</span></dt>
-		<dd>Choose an address from the list. These are the modules found on your setup. Only select dimmers! <br>
-			If your module is, for some reason, not listed, you can add a channel manually.
+		<dt>Address <span class="property-type">Number</span></dt>
+		<dd>Choose an address from the list. These are the dimmer modules found on your setup.<br>
+			If your module is, for some reason, not listed, you can add an address manually.
 		</dd>
 
-		<dt>Mode<span class="property-type">Number</span></dt>
-		<dd>Choose for periodical requests or only when the request is triggered by the input of the node.</dd>
+		<dt>Channel<span class="property-type">List</span></dt>
+		<dd>Choose the dimmer channel.</dd>
 
-		<dt>Name <span class="property-type">string</span></dt>
-		<dd>Type your custom name.</dd>
+		<dt>Commands<span class="property-type">List</span></dt>
+		<dd>
+			<p><strong>Dim to (%)</strong>: Set the brightness to a given percentage</p>
+			<p><strong>Use msg.payload as dimmer value (0-100)</strong>: Use the message' payload</p>
+			<p><strong>Toggle Dimmer</strong>: If the dimmer is of, set the brightness to 100%, otherwise set brightness to 0%</p>
+		</dd>
+
+
 	</dl>
 
 	<h3>Outputs</h3>
-	<p>The default message payload contains the dimmer in °C, but there's also a property
-		<code>fahrenheit</code> and <code>celcius</code> available.</p>
+	<p>The default message payload contains the dimmer brightness, but there's also a property
+		<code>on</code> of type Boolean.</p>
 
 	<h3>FAQ</h3>
 	<ol>
