@@ -9,6 +9,7 @@
 			"velbus-send-raw-bytes": "node-red/velbus-send-raw-bytes.js",
 			"velbus-receive-raw-bytes": "node-red/velbus-receive-raw-bytes.js",
 			"velbus-switch": "node-red/velbus-switch.js",
+			"velbus-dimmer": "node-red/velbus-dimmer.js",
 			"velbus-temperature": "node-red/velbus-temperature.js"
 		}
 	},

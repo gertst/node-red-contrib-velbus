@@ -1,5 +1,5 @@
 let constants = require('../velbus/const');
-let commandInfo = require('../velbus/commandInfo');
+let commandInfo = require('../info/commandInfo');
 let Packet = require('../velbus/packet');
 let mustache = require("mustache");
 

@@ -67,7 +67,7 @@ module.exports = function (RED) {
 		});
 
 		this.on('input', msg => {
-			console.log("input", msg);
+			// console.log("input", msg);
 			sendRequest(this);
 		});
 
@@ -83,10 +83,10 @@ module.exports = function (RED) {
 
 	}
 
-	RED.httpAdmin.get(`/velbus/get-modules`, function (req, res, next) {
+	RED.httpAdmin.get(`/velbus/get-temperature-modules`, function (req, res, next) {
 
 		if (global.velbus && global.velbus.modules) {
-			res.end(JSON.stringify(global.velbus.modules));
+			res.end(JSON.stringify(global.velbus.modules.filter(i => i.hasTemperatureSensor)));
 		} else {
 			res.end([]);
 		}
@@ -98,12 +98,12 @@ module.exports = function (RED) {
 };
 
 function sendRequest(that) {
-	console.log("sendRequest", that.address);
+	// console.log("sendRequest", that.address);
 	if (that.address) {
 		let packet = new Packet(that.address, constants.PRIO_LOW);
 		packet.setDataBytes([constants.commands.COMMAND_TEMPERATURE_SENSOR_TEMPERATURE_REQUEST, that.mode]);
 		packet.pack();
 		global.velbus.client.write(packet.getRawBuffer());
-		console.log(packet.toString());
+		// console.log(packet.toString());
 	}
 }

@@ -38,7 +38,7 @@ module.exports = function (RED) {
 
 				if (packet.command === this.command || this.command === -1) {
 					//console.log(`pushed ${packet.getRawDataAsString()}`);
-					const databytes = packet.getDataBytes();
+					const databytes = packet.getDataBytes;
 					this.status({
 						fill: "green",
 						shape: "dot",
@@ -51,7 +51,7 @@ module.exports = function (RED) {
 									channel: packet.channel,
 									command: packet.command,
 									commandName: packet.getCommandName,
-									dataBytesArray: packet.getDataBytes(),
+									dataBytesArray: packet.getDataBytes,
 									rawBytesArray: packet.rawPacket
 								}
 							});

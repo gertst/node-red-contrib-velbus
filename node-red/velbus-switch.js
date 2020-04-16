@@ -52,7 +52,7 @@ module.exports = function (RED) {
 
 					if (packet.command === constants.commands.COMMAND_SWITCH_STATUS) {
 						//console.log(`pushed ${packet.getRawDataAsString()}`);
-						const databytes = packet.getDataBytes();
+						const databytes = packet.getDataBytes;
 						if (databytes[1] === Math.pow(2, Packet.getPhysicalChannel(this.channel) - 1)) {
 							this.status({
 								fill: "green",

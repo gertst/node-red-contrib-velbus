@@ -211,7 +211,7 @@ class Packet {
 		return b;
 	}
 
-	getDataBytes() {
+	get getDataBytes() {
 		var ba = [];
 		for (let i = 0; i < this.dataSize; i++) {
 			ba.push(this.rawPacket[i + 4]);

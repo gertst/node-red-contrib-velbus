@@ -71,14 +71,10 @@ class Velbus extends EventEmitter {
 					if (metaData) {
 						//add module if not yet present
 						if (!this.modules.find(i => i.address === packet.address)) {
-							this.modules.push({
-								name: metaData.name,
-								address: packet.address,
-								hasInput: metaData.hasInput,
-								nrOfChannels: metaData.nrOfChannels,
-								requestNameBinary: metaData.requestNameBinary,
-								extraAddresses: [],
-							});
+							let module = {...metaData};
+							module.address = packet.address;
+							module.extraAddresses = [];
+							this.modules.push(module);
 						}
 					} else {
 						console.log("WARNING: Module of type " + packet.getDataByte(1) + " is unknown.");
@@ -190,7 +186,7 @@ class Velbus extends EventEmitter {
 
 	setPartName(index, packet) {
 
-		const databytes = packet.getDataBytes();
+		const databytes = packet.getDataBytes;
 		let channel;
 		const found = this.modules.find((item => item.address === packet.address));
 		if (!found) {
