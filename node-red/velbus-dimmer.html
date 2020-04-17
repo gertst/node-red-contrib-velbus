@@ -111,10 +111,10 @@
 			$(".red-ui-typedInput-input").width("96%");
 
 			$.get("velbus/get-dimmer-modules").then(modules => {
-
+				let addressData;
 				if (modules.length > 0) {
 					modules = JSON.parse(modules);
-					modules = modules.map(i => {
+					addressData = modules.map(i => {
 						return {
 							value: i.address,
 							hasValue: false,
@@ -122,10 +122,10 @@
 						}
 					});
 				} else {
-					modules = [];
+					addressData = [];
 				}
 
-				modules.splice(0, 0, {
+				addressData.splice(0, 0, {
 					value: "custom",
 					label: "Manual (for Hex, use 0x format)",
 					validate(i) {
@@ -136,8 +136,9 @@
 				const $nodeInputAddress = $("#node-input-address");
 				$nodeInputAddress.typedInput({
 					typeField: $("#node-input-addressType"),
-					types: modules
-				}).on('change', function(type, value) {
+					types: addressData
+				}).on('change', function(e, type, value) {
+					//console.log("change", e, type, value);
 					const address = isNaN(parseInt(type)) ? parseInt(value) : parseInt(type);
 					setNrOfChannelsForAddress(modules, address);
 				});
@@ -156,6 +157,7 @@
 	});
 
 	function setNrOfChannelsForAddress(modules, address) {
+		//console.log("setNrOfChannelsForAddress", modules, address);
 		const module = modules.find(i => i.address === address);
 		let nrOfChannels = 999;
 		if (module) {
@@ -194,7 +196,7 @@
 		<li>toggle the dimmer on/off</li>
 		<li>dim to a given percentage</li>
 		<li>use the payload to set the percentage</li>
-		<li>output the current dim percentage each time when it changes</li>
+		<li>output the current dim percentage each time when it changes, eg. to log the state to InfluxDB</li>
 	</ul>
 
 	<h3>Setup</h3>

@@ -1,3 +1,5 @@
+let Utils = require ("../info/utils");
+
 let constants = require('../velbus/const');
 let Packet = require('../velbus/packet');
 
@@ -5,7 +7,7 @@ module.exports = function (RED) {
 	"use strict";
 
 	//runs on deploy or when node is already in flow
-	function VelbusDimmer(config) {
+	function VelbusRelay(config) {
 
 		RED.nodes.createNode(this, config);
 
@@ -39,24 +41,36 @@ module.exports = function (RED) {
 
 			if (packet.address === this.address) {
 
-				if (packet.command === constants.commands.COMMAND_VARIABLE_DIMMER_STATUS
-					&& packet.getDataByte(1) === this.channel) {
+				if (packet.command === constants.commands.COMMAND_RELAY_SWITCH_STATUS) {
 
-					const brightness = packet.getDataByte(3);
-					this.lastBrightness = brightness;
-					const onOffString = brightness === 0 ? "off" : "on";
+					let channel;
+					if (packet.getDataByte(1) === 1) {
+						channel = 1;
+					} else if (packet.getDataByte(1) === 2) {
+						channel = 2;
+					} else if (packet.getDataByte(1) === 4) {
+						channel = 3;
+					} else if (packet.getDataByte(1) === 8) {
+						channel = 4;
+					}
 
-					this.status({
-						fill: "green",
-						shape: brightness === 0 ? "ring" : "dot",
-						text: `Turned ${onOffString} (${brightness}%) @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
-					});
+					if (channel === this.channel) {
+						this.isOn = Utils.bitAtGivenPosSetOrUnset(packet.getDataByte(3),channel);
+						const onOffString = this.isOn ? "on" : "off";
 
-					this.send(
-							{
-								payload: brightness,
-								on: brightness > 0
-							});
+						this.status({
+							fill: "green",
+							shape: this.isOn ? "dot" : "ring",
+							text: `Switched ${onOffString} @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
+						});
+
+						this.send(
+								{
+									payload: this.isOn,
+									on: this.isOn
+								});
+					}
+
 
 				}
 			}
@@ -64,28 +78,35 @@ module.exports = function (RED) {
 		});
 
 		this.on('input', msg => {
-			console.log("input", msg);
-			let brightness;
 			let packet = new Packet(this.address, constants.PRIO_HI);
 			let speed = 0;
+			let switchOn = true;
 			if (this.commandsType === "TOGGLE") {
-				brightness = this.lastBrightness === 0 ? 100 : 0;
+				switchOn = !this.isOn;
 			} else if (this.commandsType === "PAYLOAD") {
-				brightness = parseInt(msg.payload);
-			} else if (this.commandsType === "VALUE") {
-				brightness = parseInt(this.commands);
+				if (["1", "ON", "TRUE"].includes(msg.payload.toString().toUpperCase())) {
+					switchOn = true;
+				} else if (["0", "OFF", "FALSE"].includes(msg.payload.toString().toUpperCase())) {
+					switchOn = false;
+				} else if (msg.payload.toString().toUpperCase() === "TOGGLE") {
+					switchOn = !this.isOn;
+				} else {
+					this.status({
+						fill: "red",
+						shape: "dot",
+						text: `msg.payload has no valid value - ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
+					});
+					return
+				}
+			} else if (this.commandsType === "ON") {
+				switchOn = true
+			} else if (this.commandsType === "OFF") {
+				switchOn = false
 			}
 
-			if (isNaN(brightness) || brightness < 0 || brightness > 100) {
-				this.status({
-					fill: "red",
-					shape: "dot",
-					text: `msg.payload is NaN or not between 0 and 100 - ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
-				});
-				return
-			}
-
-			packet.setDataBytes([constants.commands.COMMAND_SET_DIMMER_VALUE, this.channel, brightness, 0, speed]);
+			const command = switchOn ? constants.commands.COMMAND_SWITCH_RELAY_ON : constants.commands.COMMAND_SWITCH_RELAY_OFF;
+			const bit = Math.pow(2, this.channel - 1);
+			packet.setDataBytes([command, bit]);
 			packet.pack();
 			global.velbus.client.write(packet.getRawBuffer());
 		});
@@ -96,10 +117,10 @@ module.exports = function (RED) {
 
 	}
 
-	RED.httpAdmin.get(`/velbus/get-dimmer-modules`, function (req, res, next) {
+	RED.httpAdmin.get(`/velbus/get-relay-modules`, function (req, res, next) {
 
 		if (global.velbus && global.velbus.modules) {
-			res.end(JSON.stringify(global.velbus.modules.filter(i => i.hasDimmer)));
+			res.end(JSON.stringify(global.velbus.modules.filter(i => i.nrOfRelays > 0)));
 		} else {
 			res.end([]);
 		}
@@ -107,16 +128,17 @@ module.exports = function (RED) {
 	});
 
 
-	RED.nodes.registerType("velbus-dimmer", VelbusDimmer);
+	RED.nodes.registerType("velbus-relay", VelbusRelay);
 };
 
 function requestStatus(that) {
 	//console.log("sendRequest", that.address);
 	if (that.address) {
 		let packet = new Packet(that.address, constants.PRIO_LOW);
-		packet.setDataBytes([constants.commands.COMMAND_MODULE_STATUS_REQUEST, that.channel]);
+		const bit = Math.pow(2, that.channel - 1);
+		packet.setDataBytes([constants.commands.COMMAND_MODULE_STATUS_REQUEST, bit]);
 		packet.pack();
 		global.velbus.client.write(packet.getRawBuffer());
-		console.log(packet.toString());//
+		// console.log(packet.toString());//
 	}
 }

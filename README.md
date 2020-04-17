@@ -61,6 +61,10 @@ __If you are using this module, please let me know! Curious about your findings/
 - 2020/04/13
    - Bugfix: moved devDependency "mustache" to dependency.
    - cleanup old references and files
+- 2020/04/17
+   - Added a Relay node to send and receive basic relay commands
+   - Added a Dimmer node to send and receive basic dimmer commands
+   
    
 		
 ## Implemented Velbus modules:

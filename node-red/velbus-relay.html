@@ -60,7 +60,7 @@
 			name: {value: "", required: false},
 			connector: {value: "", type: "velbus-connector"},
 			commands: {value: 0},
-			commandsType: {value: 0}, //the type is the choosen item in the dropdown
+			commandsType: {value: "TOGGLE"}, //the type is the choosen item in the dropdown
 			address: {value: 0x01},
 			addressType: {value: 0x01}, //the type is the choosen item in the dropdown
 			channel: {value: 0x01},
@@ -69,7 +69,13 @@
 		inputs: 1,
 		outputs: 1,
 		align: 'left',
-		icon: "relay.svg",
+		icon: function() {
+			if (this.isOn) {
+				return "relay-closed.svg"; //hm, this seems not to work with runtime changes :(
+			} else {
+				return "relay-open.svg";
+			}
+		},
 		paletteLabel: "Relay",
 		label() {
 			return this.name || `Relay @ ${numberToHexString(this.addressType)}`;
@@ -80,25 +86,25 @@
 
 			const commands = [
 				{
-					value: "VALUE",
-					label: "Dim to: (%) ",
-					hasValue: true,
-					validate: function(i) {
-						i = parseInt(i);
-						return !isNaN(i) && i >= 0 && i <= 100;
-					}
-				},
-				{
 					value: "PAYLOAD",
-					label: "Use msg.payload as relay value (0-100)",
+					label: "Use msg.payload (bool, bit, on/off or toggle)",
 					hasValue: false
 				},
 				{
 					value: "TOGGLE",
 					label: "Toggle relay",
 					hasValue: false
-				}
-
+				},
+				{
+					value: "ON",
+					label: "Relay on",
+					hasValue: false
+				},
+				{
+					value: "OFF",
+					label: "Relay off",
+					hasValue: false
+				},
 			];
 
 			//docs for TypedInput: https://nodered.org/docs/api/ui/typedInput/
@@ -112,9 +118,10 @@
 
 			$.get("velbus/get-relay-modules").then(modules => {
 
+				let addressData;
 				if (modules.length > 0) {
 					modules = JSON.parse(modules);
-					modules = modules.map(i => {
+					addressData = modules.map(i => {
 						return {
 							value: i.address,
 							hasValue: false,
@@ -122,10 +129,10 @@
 						}
 					});
 				} else {
-					modules = [];
+					addressData = [];
 				}
 
-				modules.splice(0, 0, {
+				addressData.splice(0, 0, {
 					value: "custom",
 					label: "Manual (for Hex, use 0x format)",
 					validate(i) {
@@ -133,10 +140,19 @@
 					}
 				});
 
-				$("#node-input-address").typedInput({
+				const $nodeInputAddress = $("#node-input-address");
+				$nodeInputAddress.typedInput({
 					typeField: $("#node-input-addressType"),
-					types: modules
+					types: addressData
+				}).on('change', function(e, type, value) {
+					const address = isNaN(parseInt(type)) ? parseInt(value) : parseInt(type);
+					setNrOfChannelsForAddress(modules, address);
 				});
+
+				const type = $nodeInputAddress.typedInput("type");
+				const value = $nodeInputAddress.typedInput("value");
+				const address = isNaN(parseInt(type)) ? parseInt(value) : parseInt(type);
+				setNrOfChannelsForAddress(modules, address);
 
 				//fix width of input
 				$(".red-ui-typedInput-input").width("96%");
@@ -145,6 +161,23 @@
 		}
 
 	});
+
+	function setNrOfChannelsForAddress(modules, address) {
+		//console.log("setNrOfChannelsForAddress", modules, address);
+		const module = modules.find(i => i.address === address);
+		let nrOfChannels = 999;
+		if (module) {
+			nrOfChannels = module.nrOfRelays;
+		}
+		$("#node-input-channel option").each((index, el) => {
+			//console.log( index + ": " + $( that ).text() );
+			if (index >= nrOfChannels) {
+				$(el).attr("disabled", "disabled");
+			} else {
+				$(el).removeAttr("disabled");
+			}
+		});
+	}
 
 	function numberToHexString(value) {
 		if (isNaN(value)) {
@@ -167,9 +200,10 @@
 	<p>It can:</p>
 	<ul>
 		<li>toggle the relay on/off</li>
-		<li>dim to a given percentage</li>
+		<li>switch the relay on</li>
+		<li>switch the relay off</li>
 		<li>use the payload to set the percentage</li>
-		<li>output the current dim percentage each time when it changes</li>
+		<li>output the current state each time when it changes, eg. to log the state to InfluxDB</li>
 	</ul>
 
 	<h3>Setup</h3>
@@ -195,16 +229,17 @@
 
 		<dt>Commands<span class="property-type">List</span></dt>
 		<dd>
-			<p><strong>Dim to (%)</strong>: Set the brightness to a given percentage</p>
-			<p><strong>Use msg.payload as relay value (0-100)</strong>: Use the message' payload</p>
-			<p><strong>Toggle relay</strong>: If the relay is of, set the brightness to 100%, otherwise set brightness to 0%</p>
+			<p><strong>Use msg.payload (bool, bit, on/off or toggle):</strong> Possible values can be true/false, 1/0, 'on'/'off' or 'toggle'.</p>
+			<p><strong>Toggle relay:</strong> toggle the relay</p>
+			<p><strong>Relay on:</strong> switch the relay on</p>
+			<p><strong>Relay off:</strong> switch the relay off</p>
 		</dd>
 
 
 	</dl>
 
 	<h3>Outputs</h3>
-	<p>The default message payload contains the relay brightness, but there's also a property
+	<p>The default message <code>payload</code> contains the relay state of type boolean, but there's also a property
 		<code>on</code> of type Boolean.</p>
 
 	<h3>FAQ</h3>
@@ -225,5 +260,5 @@
 		<li><a href="https://twitter.com/GertStalpaert" target="_blank">Contact me on Twitter</a> if you want to share a
 			word about your own setup. ;-)
 		</li>
-	</ul
+	</ul>
 </script>

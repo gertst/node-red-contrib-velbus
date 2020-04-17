@@ -49,7 +49,7 @@ module.exports = function (RED) {
 					this.status({
 						fill: "green",
 						shape: brightness === 0 ? "ring" : "dot",
-						text: `Turned ${onOffString} (${brightness}%) @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
+						text: `Switched ${onOffString} (${brightness}%) @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
 					});
 
 					this.send(
@@ -117,6 +117,6 @@ function requestStatus(that) {
 		packet.setDataBytes([constants.commands.COMMAND_MODULE_STATUS_REQUEST, that.channel]);
 		packet.pack();
 		global.velbus.client.write(packet.getRawBuffer());
-		console.log(packet.toString());//
+		// console.log(packet.toString());//
 	}
 }
