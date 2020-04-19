@@ -41,6 +41,7 @@
 		<label for="node-input-dataBytes"><i class="fa fa-dot-circle-o"></i> Data Bytes</label>
 		<input type="string" id="node-input-dataBytes" style="width: 70%">
 		<input type="hidden" id="node-input-dataBytesType">
+		<!--<input type="hidden" id="node-input-commandName">-->
 
 	</div>
 
@@ -76,8 +77,9 @@
 		category: 'Velbus',
 		color: '#e1444e',
 		defaults: {
-			name: {value: "Send Raw Bytes", required: false},
+			name: {value: "", required: false},
 			connector: {value: "", type: "velbus-connector"},
+			commandName: {value: ""}, //only used to fill the label
 			dataBytes: {value: 0x02},
 			dataBytesType: {value: 0xEE}, //the type is the choosen item in the dropdown
 			address: {value: 0x00},
@@ -91,7 +93,7 @@
 		icon: "output.svg",
 		paletteLabel: "Send Raw Bytes",
 		label() {
-			return this.name;
+			return this.name || (this.commandName || "Send Raw Bytes") + ` @ ${numberToHexString(parseInt(this.addressType === "MANUAL" ? this.address: this.addressType))}`;
 		},
 
 		oneditprepare() {
@@ -127,7 +129,10 @@
 				$("#node-input-dataBytes").typedInput({
 					typeField: $("#node-input-dataBytesType"),
 					types: commands
-				}).on('change', function (type, value) {
+				}).on('change', (e, type) => {
+					const foundCommand = commands.find(i => i.value === type);
+					this.commandName = foundCommand.label. split("(")[0] || "";
+
 					setCommandInfo(commandInfoArray);
 				});
 
@@ -266,7 +271,8 @@
 		<li>Switch on a relay.</li>
 		<li>Dim a light to 50% over 1 minute.</li>
 		<li>Periodically send the date and time to your Velbus setup. I had to do this because the clock shifts over
-		time.</li>
+			time.
+		</li>
 		<li>Send a memo text to the OLED display of your VMBELO Edge-lit touch panel.</li>
 		<li>Request the temperature of a sensor.</li>
 	</ul>
@@ -301,10 +307,11 @@
 			<p>You can add decimal numbers or hexadecimal numbers (using the 0x notation).</p>
 			<p><b>Dynamic data bytes</b>
 				Several options are possible:<br>
-				You can feed the data bytes with dynamic data by using topic + payload data, or by using JSON keys in the input node and Mustache syntax
+				You can feed the data bytes with dynamic data by using topic + payload data, or by using JSON keys in
+				the input node and Mustache syntax
 				in the Data Bytes input:<br>
 				See example in the <a href="https://flows.nodered.org/node/node-red-contrib-velbus" target="_blank">Readme</a>.
-			</ul>
+				</ul>
 		</dd>
 
 		<dt>Name <span class="property-type">string</span></dt>
@@ -319,9 +326,9 @@
 	<h3>FAQ</h3>
 	<ol>
 		<li><b>My Velbus module is not shown in the Address list!</b> You can add your module to this list by updating
-		the file <code>~/.node-red/node_modules/node-red-contrib-velbus/velbus/const.js</code>. <br>
-		Restart Node-red and your module should be found in the list of addresses! Please let me know these kind of
-		errors so I can update my code.
+			the file <code>~/.node-red/node_modules/node-red-contrib-velbus/velbus/const.js</code>. <br>
+			Restart Node-red and your module should be found in the list of addresses! Please let me know these kind of
+			errors so I can update my code.
 		</li>
 		<li>The yellow info panel provides some more info about the currently selected command.</li>
 	</ol>
@@ -332,7 +339,7 @@
 			repository</a> to check issues and post solutions/requests here.
 		</li>
 		<li><a href="https://twitter.com/GertStalpaert" target="_blank">Contact me on Twitter</a> if you want to share
-		a word about your own setup. ;-)
+			a word about your own setup. ;-)
 		</li>
 	</ul>
 </script>
