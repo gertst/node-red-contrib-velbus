@@ -72,7 +72,7 @@
 		icon: "dimmer.svg",
 		paletteLabel: "Dimmer",
 		label() {
-			return this.name || `Dimmer @ ${numberToHexString(this.addressType)}`;
+			return this.name || `Dimmer @ ${numberToHexString(parseInt(this.addressType === "MANUAL" ? this.address: this.addressType))}`;
 		},
 
 		oneditprepare() {
@@ -126,7 +126,7 @@
 				}
 
 				addressData.splice(0, 0, {
-					value: "custom",
+					value: "MANUAL",
 					label: "Manual (for Hex, use 0x format)",
 					validate(i) {
 						return !isNaN(parseInt(i)) && parseInt(i) > 0

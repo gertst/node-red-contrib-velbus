@@ -34,7 +34,7 @@
 		category: 'Velbus',
 		color: '#e1444e',
 		defaults: {
-			name: {value: "Receive Raw Bytes", required: false},
+			name: {value: "", required: false},
 			connector: {value: "", type: "velbus-connector"},
 			command: {value: -1},
 			commandType: {value: -1}, //the type is the choosen item in the dropdown
@@ -47,7 +47,7 @@
 		icon: "input.svg",
 		paletteLabel: "Receive Raw Bytes",
 		label() {
-			return this.name;
+			return this.name || `Receive bytes @ ${numberToHexString(parseInt(this.addressType === "MANUAL" ? this.address: this.addressType))}`;
 		},
 
 		oneditprepare() {
@@ -58,7 +58,7 @@
 					return a.label > b.label ? 1 : -1
 				});
 				commands.splice(0, 0, {
-					value: "custom",
+					value: "MANUAL",
 					label: "Manual (for Hex, use 0x format)",
 					validate: /(0x)?[0-9a-f]+/i //hex value
 				});
@@ -99,7 +99,7 @@
 				});
 
 				modules.splice(0, 0, {
-					value: "custom",
+					value: "MANUAL",
 					label: "Manual (for Hex, use 0x format)",
 					validate(i) {
 						return !isNaN(parseInt(i)) && parseInt(i) > 0

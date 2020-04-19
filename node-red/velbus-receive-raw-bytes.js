@@ -10,8 +10,8 @@ module.exports = function (RED) {
 
 		this.name = config.name;
 		this.connector = config.connector;
-		this.address = config.addressType === "custom" ? parseInt(config.address) : parseInt(config.addressType);
-		this.command = config.commandType === "custom" ? parseInt(config.command) : parseInt(config.commandType);
+		this.address = config.addressType === "MANUAL" ? parseInt(config.address) : parseInt(config.addressType);
+		this.command = config.commandType === "MANUAL" ? parseInt(config.command) : parseInt(config.commandType);
 
 		// console.log("config", config);
 		// console.log("this", this);

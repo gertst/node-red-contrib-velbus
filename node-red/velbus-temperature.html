@@ -34,7 +34,7 @@
 		category: 'Velbus',
 		color: '#e1444e',
 		defaults: {
-			name: {value: "Temperature", required: false},
+			name: {value: "", required: false},
 			connector: {value: "", type: "velbus-connector"},
 			mode: {value: 0},
 			modeType: {value: 0}, //the type is the choosen item in the dropdown
@@ -47,7 +47,7 @@
 		icon: "temperature.svg",
 		paletteLabel: "Temperature",
 		label() {
-			return this.name || "Temperature sensor";
+			return this.name || `Temperature @ ${numberToHexString(parseInt(this.addressType === "MANUAL" ? this.address: this.addressType))}`;
 		},
 
 		oneditprepare() {
@@ -137,7 +137,7 @@
 				}
 
 				modules.splice(0, 0, {
-					value: "custom",
+					value: "MANUAL",
 					label: "Manual (for Hex, use 0x format)",
 					validate(i) {
 						return !isNaN(parseInt(i)) && parseInt(i) > 0

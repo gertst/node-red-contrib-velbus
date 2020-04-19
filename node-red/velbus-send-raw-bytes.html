@@ -172,12 +172,14 @@
 				});
 
 				modules.splice(0, 0, {
-					value: "custom",
+					value: "MANUAL",
 					label: "Manual (for Hex, use 0x format)",
 					validate(i) {
 						return !isNaN(parseInt(i))
 					}
 				});
+
+				console.log("modules:", modules);
 
 				$("#node-input-address").typedInput({
 					typeField: $("#node-input-addressType"),

@@ -13,7 +13,7 @@ module.exports = function (RED) {
 
 		this.name = config.name;
 		this.connector = config.connector;
-		this.address = config.addressType === "custom" ? parseInt(config.address) : parseInt(config.addressType);
+		this.address = config.addressType === "MANUAL" ? parseInt(config.address) : parseInt(config.addressType);
 		this.channel = parseInt(config.channel);
 		this.commands = config.commands;
 		this.commandsType = config.commandsType;

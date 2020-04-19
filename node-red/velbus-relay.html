@@ -72,7 +72,7 @@
 		icon: "relay-open.svg",
 		paletteLabel: "Relay",
 		label() {
-			return this.name || `Relay @ ${numberToHexString(this.addressType)}`;
+			return this.name || `Relay @ ${numberToHexString(parseInt(this.addressType === "MANUAL" ? this.address: this.addressType))}`;
 		},
 
 		oneditprepare() {
@@ -127,7 +127,7 @@
 				}
 
 				addressData.splice(0, 0, {
-					value: "custom",
+					value: "MANUAL",
 					label: "Manual (for Hex, use 0x format)",
 					validate(i) {
 						return !isNaN(parseInt(i)) && parseInt(i) > 0
@@ -138,7 +138,7 @@
 				$nodeInputAddress.typedInput({
 					typeField: $("#node-input-addressType"),
 					types: addressData
-				}).on('change', function(e, type, value) {
+				}).on('change', function (e, type, value) {
 					const address = isNaN(parseInt(type)) ? parseInt(value) : parseInt(type);
 					setNrOfChannelsForAddress(modules, address);
 				});
@@ -223,7 +223,8 @@
 
 		<dt>Commands<span class="property-type">List</span></dt>
 		<dd>
-			<p><strong>Use msg.payload (bool, bit, on/off or toggle):</strong> Possible values can be true/false, 1/0, 'on'/'off' or 'toggle'.</p>
+			<p><strong>Use msg.payload (bool, bit, on/off or toggle):</strong> Possible values can be true/false, 1/0,
+				'on'/'off' or 'toggle'.</p>
 			<p><strong>Toggle relay:</strong> toggle the relay</p>
 			<p><strong>Relay on:</strong> switch the relay on</p>
 			<p><strong>Relay off:</strong> switch the relay off</p>

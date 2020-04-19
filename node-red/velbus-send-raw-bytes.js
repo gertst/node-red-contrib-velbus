@@ -41,7 +41,7 @@ module.exports = function (RED) {
 
 
 		this.on('input', msg => {
-			let address = parseInt(this.address);
+			let address = parseInt(this.addressType);
 			if (this.addressType === "MSG") {
 				address = parseInt(msg.address);
 				if (isNaN(address)) {
@@ -54,6 +54,8 @@ module.exports = function (RED) {
 					this.status({fill: "red", shape: "dot", text: "Error: msg.payload.address is not a number!"});
 					return
 				}
+			} else if (this.addressType === "MANUAL") {
+				address = parseInt(this.address);
 			}
 			let priority = this.priority;
 			if (this.priority === "MSG") {
