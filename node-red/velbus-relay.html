@@ -69,13 +69,7 @@
 		inputs: 1,
 		outputs: 1,
 		align: 'left',
-		icon: function() {
-			if (this.isOn) {
-				return "relay-closed.svg"; //hm, this seems not to work with runtime changes :(
-			} else {
-				return "relay-open.svg";
-			}
-		},
+		icon: "relay-open.svg",
 		paletteLabel: "Relay",
 		label() {
 			return this.name || `Relay @ ${numberToHexString(this.addressType)}`;
