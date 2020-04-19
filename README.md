@@ -64,8 +64,12 @@ __If you are using this module, please let me know! Curious about your findings/
 - 2020/04/17
    - Added a Relay node to send and receive basic relay commands
    - Added a Dimmer node to send and receive basic dimmer commands
-   
-   
+- 2020/04/19
+   - Bugfix: Some modules had a wrong nr of relays (thanks to MDAR)   
+   - Bugfix: The first gen. glass pannels had no temp sensor (thanks to MDAR)   
+   - Bugfix: The relay node had no icon in specific circumstances
+   - Bugfix: Address was empty when data bytes were parsed from payload (thanks to jorampic)
+   - Enhancement: More descriptive default names
 		
 ## Implemented Velbus modules:
 

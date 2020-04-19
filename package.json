@@ -1,6 +1,6 @@
 {
 	"name": "node-red-contrib-velbus",
-	"version": "0.2.08",
+	"version": "0.2.09",
 	"private": false,
 	"scripts": {},
 	"node-red": {
