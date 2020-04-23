@@ -1,5 +1,7 @@
 let constants = require('../velbus/const');
 
+let connector;
+
 module.exports = function (RED) {
 	"use strict";
 
@@ -9,30 +11,26 @@ module.exports = function (RED) {
 		RED.nodes.createNode(this, config);
 
 		this.name = config.name;
-		this.connector = config.connector;
+		// Retrieve the config node
+		this.connector = RED.nodes.getNode(config.connector);
+		connector = this.connector;
 		this.address = config.addressType === "MANUAL" ? parseInt(config.address) : parseInt(config.addressType);
 		this.command = config.commandType === "MANUAL" ? parseInt(config.command) : parseInt(config.commandType);
 
-		// console.log("config", config);
-		// console.log("this", this);
-
-
-		this.status({fill: "green", shape: "ring", text: `Waiting ...`});
-
-		if (!global.velbus) {
-			this.status({fill: "orange", shape: "dot", text: `No Velbus connector node found: Add one first!`});
+		if (connector && connector.velbus) {
+			this.status({fill: "green", shape: "dot", text: `Velbus ready`});
+		} else {
+			this.status({fill: "red", shape: "dot", text: `No Velbus connector node found: Add one first!`});
 			return
 		}
-
-		global.velbus.on('onError', msg => {
+		connector.velbus.on('onError', msg => {
 			this.status({fill: "red", shape: "dot", text: msg});
 		});
-
-		global.velbus.on('onStatus', msg => {
+		connector.velbus.on('onStatus', msg => {
 			this.status({fill: "green", shape: "dot", text: msg});
 		});
 
-		global.velbus.on('onSerialPacket', packet => {
+		connector.velbus.on('onSerialPacket', packet => {
 
 			if (packet.address === this.address) {
 
@@ -63,12 +61,12 @@ module.exports = function (RED) {
 
 	}
 
-	RED.httpAdmin.get(`/velbus/get-modules`, function (req, res, next) {
+	RED.httpAdmin.get(`/velbus/get-all-modules-receive`, function (req, res, next) {
 
-		if (global.velbus && global.velbus.modules) {
-			res.end(JSON.stringify(global.velbus.modules));
+		if (connector && connector.velbus && connector.velbus.modules) {
+			res.end(JSON.stringify(connector.velbus.modules));
 		} else {
-			res.end([]);
+			res.end("[]");
 		}
 
 	});

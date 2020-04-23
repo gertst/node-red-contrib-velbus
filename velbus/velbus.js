@@ -1,4 +1,5 @@
 let Packet = require('./packet');
+// let Protocol = require('../info/protocol');
 let constants = require('./const');
 let EventEmitter = require('events');
 require('events').EventEmitter.defaultMaxListeners = 100;
@@ -12,6 +13,8 @@ class Velbus extends EventEmitter {
 		this.buttonNames = [];
 		this.config = config;
 		this.connectionTries = 0;
+
+		// const protocol = new Protocol();
 
 		this.init();
 

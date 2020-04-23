@@ -2,6 +2,8 @@ let constants = require('../velbus/const');
 let Velbus = require('../velbus/velbus');
 let Packet = require('../velbus/packet');
 
+let connector;
+
 module.exports = function (RED) {
 	"use strict";
 
@@ -13,7 +15,9 @@ module.exports = function (RED) {
 		let thisNode = this;
 
 		this.name = config.name;
-		this.connector = config.connector;
+		// Retrieve the config node
+		this.connector = RED.nodes.getNode(config.connector);
+		connector = this.connector;
 		this.address = parseInt(config.address);
 		this.channel = parseInt(config.channel);
 		this.outputs = parseInt(config.outputs);
@@ -22,33 +26,23 @@ module.exports = function (RED) {
 		setTimeout(() => {
 			this.velbusName = "";
 
-			this.status({fill: "green", shape: "ring", text: `Waiting ...`});
-
-			if (!global.velbus) {
-				this.status({fill: "orange", shape: "dot", text: `No Velbus connector node found: Add one first!`});
+			if (connector && connector.velbus) {
+				this.status({fill: "green", shape: "dot", text: `Velbus ready`});
+			} else {
+				this.status({fill: "red", shape: "dot", text: `No Velbus connector node found: Add one first!`});
 				return
 			}
-
-			global.velbus.on('onError', msg => {
+			connector.velbus.on('onError', msg => {
 				this.status({fill: "red", shape: "dot", text: msg});
 			});
-
-			global.velbus.on('onStatus', msg => {
+			connector.velbus.on('onStatus', msg => {
 				this.status({fill: "green", shape: "dot", text: msg});
 			});
 
 
-			global.velbus.on('onSerialPacket', packet => {
+			connector.velbus.on('onSerialPacket', packet => {
 
-				if (packet.address === Packet.getPhysicalAddress(this.address, this.channel)) {
-
-					//this.status({fill: "green", shape: "ring", text: `Last command: ${packet.command}`});
-
-					//console.info(`cmd ${packet.command} @ ${packet.address} - ${packet.toString()}`);
-
-					// if (packet.command === constants.COMMAND_MODULE_TYPE) {
-					// 	this.requestButtonName();
-					// }
+				if (packet.address === Packet.getPhysicalAddress(connector.velbus, this.address, this.channel)) {
 
 					if (packet.command === constants.commands.COMMAND_SWITCH_STATUS) {
 						//console.log(`pushed ${packet.getRawDataAsString()}`);
@@ -118,7 +112,7 @@ module.exports = function (RED) {
 					let longPressed = 0;
 
 					let packet = new Packet(
-							Packet.getPhysicalAddress(this.address, this.channel),
+							Packet.getPhysicalAddress(connector.velbus, this.address, this.channel),
 							Packet.PRIORITY_HIGH,
 							[constants.commands.COMMAND_SWITCH_STATUS, pressed, released, longPressed],
 							false);
@@ -128,7 +122,7 @@ module.exports = function (RED) {
 			}
 
 			let packet = new Packet(
-					Packet.getPhysicalAddress(this.address, this.channel),
+					Packet.getPhysicalAddress(connector.velbus, this.address, this.channel),
 					Packet.PRIORITY_HIGH,
 					[constants.commands.COMMAND_SWITCH_STATUS, pressed, released, longPressed],
 					false);
@@ -141,7 +135,7 @@ module.exports = function (RED) {
 		this.sendPacket = (packet) => {
 			packet.pack();
 			console.log(`Virtual button: ${packet.toString()}`);
-			if (global.velbus) {
+			if (connector && connector.velbus) {
 				let command = "";
 				if (packet.rawPacket[5]) {
 					command = "pressed";
@@ -151,57 +145,43 @@ module.exports = function (RED) {
 					command = "long pressed";
 				}
 				this.status({fill: "green", shape: "ring", text: `${this.name} ${command} @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`});
-				global.velbus.client.write(packet.getRawBuffer());
+				connector.velbus.client.write(packet.getRawBuffer());
 			} else {
-				this.status({fill: "red", shape: "ring", text: `No active Velbus: Did you deploy?`});
+				this.status({fill: "red", shape: "ring", text: `No active Velbus: Did you deploy first?`});
 			}
 		}
 
 	}
 
-	// RED.httpAdmin.get(`/velbus/scan-for-modules`, function (req, res, next) {
-	//
-	// 	if (!global.velbus) {
-	// 		res.end("no velbus");
-	// 	} else {
-	// 		global.velbus.scan();
-	// 		res.end("scanning");
-	// 	}
-	//
-	// });
+	RED.httpAdmin.get(`/velbus/request-channel-names-buttons/:address/:nrOfChannels`, function (req, res, next) {
 
-
-
-
-	RED.httpAdmin.get(`/velbus/request-channel-names/:address/:nrOfChannels`, function (req, res, next) {
-
-		if (!global.velbus) {
-			res.end("no velbus");
-		} else {
+		if (connector && connector.velbus) {
 			for (let channel = 1; channel <= parseInt(req.params.nrOfChannels); channel++) {
 				setTimeout(() => {
-					console.log("request for ch", channel);
-					global.velbus.requestButtonName(parseInt(req.params.address), channel);
+					//console.log("request for ch", channel);
+					connector.velbus.requestButtonName(parseInt(req.params.address), channel);
 				}, channel * 250);
 			}
 			res.end(`Getting ${parseInt(req.params.nrOfChannels)} names ...`);
-		}
-	});
-
-	RED.httpAdmin.get(`/velbus/get-modules`, function (req, res, next) {
-
-		if (global.velbus && global.velbus.modules) {
-			res.end(JSON.stringify(global.velbus.modules));
 		} else {
-			res.end([]);
+			res.end("no velbus");
+		}
+	});
+
+	RED.httpAdmin.get(`/velbus/get-button-modules`, function (req, res, next) {
+
+		if (connector && connector.velbus && connector.velbus.modules) {
+			res.end(JSON.stringify(connector.velbus.modules));
+		} else {
+			res.end("[]");
 		}
 
 	});
 
-	RED.httpAdmin.get(`/velbus/get-channel-names/:address`, function (req, res, next) {
+	RED.httpAdmin.get(`/velbus/get-channel-names-buttons/:address`, function (req, res, next) {
 		let channelNames = [];
-		if (global.velbus.buttonNames[req.params.address]) {
-			channelNames = global.velbus.buttonNames[req.params.address];
+		if (connector && connector.velbus && connector.velbus.buttonNames[req.params.address]) {
+			channelNames = connector.velbus.buttonNames[req.params.address];
 			channelNames = channelNames.map((namePartsArray, index) => {
 				return {id: index, name: namePartsArray.join("")}
 			});
@@ -209,24 +189,6 @@ module.exports = function (RED) {
 		console.log("channelNames:", channelNames);
 		res.end(JSON.stringify(channelNames));
 	});
-
-	// RED.httpAdmin.get(`/velbus/get-name-for-button/:address/:channel`, function (req, res, next) {
-	//
-	// 	if (!global.velbus) {
-	// 		res.end("no velbus");
-	// 	} else {
-	// 		global.velbus.requestButtonName(parseInt(req.params.address), parseInt(req.params.channel));
-	// 		global.velbus.redResults[req.params.address + "-" + req.params.channel] = res.end;
-	// 		//res.end("Getting name ...");
-	// 	}
-	// });
-
-	// RED.comms.subscribe("onVelbusButtonName ", (topic, data) => {
-	// 	console.log("onVelbusButtonName topic, data", topic, data);
-	// 	if (this.address === data.address && this.channel === data.channel) {
-	// 		//$('#node-input-name').val(data.label)
-	// 	}
-	// });
 
 	RED.nodes.registerType("velbus-switch", VelbusSwitch);
 }

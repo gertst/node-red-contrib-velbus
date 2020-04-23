@@ -3,6 +3,8 @@ let commandInfo = require('../info/commandInfo');
 let Packet = require('../velbus/packet');
 let mustache = require("mustache");
 
+let connector;
+
 module.exports = function (RED) {
 	"use strict";
 
@@ -11,8 +13,11 @@ module.exports = function (RED) {
 
 		RED.nodes.createNode(this, config);
 
+		// Retrieve the config node
+		this.connector = RED.nodes.getNode(config.connector);
+		connector = this.connector;
+
 		this.name = config.name;
-		this.connector = config.connector;
 		this.priority = config.priority;
 		this.rtr = config.rtr;
 		this.address = config.address;
@@ -20,22 +25,18 @@ module.exports = function (RED) {
 		this.dataBytes = config.dataBytes;
 		this.dataBytesType = config.dataBytesType;
 
-		// console.log("config", config);
-		// console.log("this", this);
-
-
 		this.status({fill: "green", shape: "ring", text: `Waiting ...`});
 
-		if (!global.velbus) {
-			this.status({fill: "orange", shape: "dot", text: `No Velbus connector node found: Add one first!`});
+		if (connector && connector.velbus) {
+			this.status({fill: "green", shape: "dot", text: `Velbus ready`});
+		} else {
+			this.status({fill: "red", shape: "dot", text: `No Velbus connector node found: Add one first!`});
 			return
 		}
-
-		global.velbus.on('onError', msg => {
+		connector.velbus.on('onError', msg => {
 			this.status({fill: "red", shape: "dot", text: msg});
 		});
-
-		global.velbus.on('onStatus', msg => {
+		connector.velbus.on('onStatus', msg => {
 			this.status({fill: "green", shape: "dot", text: msg});
 		});
 
@@ -132,10 +133,12 @@ module.exports = function (RED) {
 
 			packet.setDataBytes(this.stringToArray(dataBytesString));
 			//console.log(`send: ${packet.toString()}`);
-			if (global.velbus) {
+			if (this.connector.velbus) {
 				this.status({fill: "green", shape: "dot", text: `Last command: ${packet.getCommandName} ${dataBytesString} @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`});
 				packet.pack();
-				global.velbus.client.write(packet.getRawBuffer());
+				if (connector && connector.velbus && connector.velbus.client) {
+					this.connector.velbus.client.write(packet.getRawBuffer());
+				}
 			} else {
 				this.status({fill: "red", shape: "dot", text: `No active Velbus yet: Did you deploy?`});
 			}
@@ -152,17 +155,18 @@ module.exports = function (RED) {
 
 	}
 
-	RED.httpAdmin.get(`/velbus/get-modules`, function (req, res, next) {
 
-		if (global.velbus && global.velbus.modules) {
-			res.end(JSON.stringify(global.velbus.modules));
+	RED.httpAdmin.get(`/velbus/get-modules`, (req, res, next) => {
+
+		if (connector && connector.velbus && connector.velbus.modules) {
+			res.end(JSON.stringify(connector.velbus.modules));
 		} else {
-			res.end([]);
+			res.end("[]");
 		}
 
 	});
 
-	RED.httpAdmin.get(`/velbus/get-commands-list-send`, function (req, res) {
+	RED.httpAdmin.get(`/velbus/get-commands-list-send`, (req, res) => {
 
 		const commandlist = Object.keys(constants.commands).map(key => {
 			return {
@@ -175,7 +179,7 @@ module.exports = function (RED) {
 
 	});
 
-	RED.httpAdmin.get(`/velbus/get-commands-info`, function (req, res) {
+	RED.httpAdmin.get(`/velbus/get-commands-info`, (req, res) => {
 
 		res.end(JSON.stringify(commandInfo));
 

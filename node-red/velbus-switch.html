@@ -83,7 +83,7 @@
 
 	RED.nodes.registerType('velbus-switch', {
 		category: 'Velbus',
-		color: '#e1444e',
+		color: '#f7a70b',
 		defaults: {
 			outputs: {value:1},
 			connector: {value: "", type: "velbus-connector"},
@@ -117,11 +117,15 @@
 
 		oneditprepare() {
 
-			$.get("velbus/get-modules").then(modules => {
+			const $connector = $("#node-input-connector");
+			//allready a Velbus connector available? -> select it
+			if ($connector.val() === "_ADD_") {
+				$connector.val($connector.find("option:first").val());
+			}
 
-				if (modules.length > 0) {
-					setModules(JSON.parse(modules), this.address);
-				}
+			$.get("velbus/get-button-modules").then(modules => {
+
+				setModules(JSON.parse(modules), this.address);
 			});
 
 			// $("#node-input-connector").change((that) => {
@@ -148,13 +152,13 @@
 							}
 						});
 
-						$.get(`velbus/request-channel-names/${address}/${nrOfChannels}`);
+						$.get(`velbus/request-channel-names-buttons/${address}/${nrOfChannels}`);
 
 						//poll until all names are found
 						let pollCount = 0;
 						clearInterval(this.findNamesIid);
 						this.findNamesIid = setInterval(() => {
-							$.get(`velbus/get-channel-names/${address}`).then(channelNames => {
+							$.get(`velbus/get-channel-names-buttons/${address}`).then(channelNames => {
 								channelNames = JSON.parse(channelNames);
 								setChannelNames(channelNames);
 								pollCount++;
@@ -197,18 +201,26 @@
 		// RESET OPTIONS
 		$('#node-input-address').empty();
 
-		// SET MODULES AS OPTIONS
-		modules.forEach(function (module) {
-			if (module.nrOfButtons > 0) {
-				$('#node-input-address').append(`
+		if (modules.length === 0) {
+			$('#node-input-address').append(`
+					<option value="" data-nr-of-channels="0">
+						ADD VELBUS AND DEPLOY FIRST ...
+					</option>`);
+		} else {
+
+			// SET MODULES AS OPTIONS
+			modules.forEach(function (module) {
+				if (module.nrOfButtons > 0) {
+					$('#node-input-address').append(`
 					<option
 						value="${module.address}"
 						data-nr-of-channels="${module.nrOfButtons}"
 					>
 						${module.name} @ ${numberToHexString(module.address)}
 					</option>`);
-			}
-		});
+				}
+			});
+		}
 
 		// RESET CURRENT VALUE
 		$('#node-input-address').val(prevAddress);

@@ -12,15 +12,17 @@ module.exports = function (RED) {
 		this.port = config.port;
 		config.RED = RED;
 
-		initVelbus(config);
-
-	}
-
-	function initVelbus(config) {
-		if (!global.velbus) {
-			global.velbus = new Velbus(config);
+		this.initVelbus = (config) => {
+			if (!this.velbus) {
+				this.velbus = new Velbus(config);
+			}
 		}
+		this.initVelbus(config);
+
+
 	}
+
+
 
 	RED.httpAdmin.get(`/velbus/init/:ip/:port`, function (req, res, next) {
 
@@ -29,7 +31,7 @@ module.exports = function (RED) {
 			port: req.params.port,
 			RED
 		};
-		initVelbus(config);
+		//initVelbus(config);
 
 	});
 

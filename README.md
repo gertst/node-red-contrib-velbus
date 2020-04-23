@@ -18,6 +18,8 @@ Once installed, these Velbus nodes can be found in the Velbus palette:
  2. a **Receive Raw Bytes** node, to listen to Velbus messages
  3. a **Button** node to manage presses on Velbus push buttons
  4. a **Temperature** Node to send and receive temperature sensor data
+ 5. a **Relay** Node to send and receive basic relay states
+ 6. a **Dimmer** Node to send and receive basic dimmer states
 
 __If you are using this module, please let me know! Curious about your findings/remarks/...__
 
@@ -70,6 +72,8 @@ __If you are using this module, please let me know! Curious about your findings/
    - Bugfix: The relay node had no icon in specific circumstances
    - Bugfix: Address was empty when data bytes were parsed from payload (thanks to jorampic)
    - Enhancement: More descriptive default names
+- 2020/04/xx
+   - Enhancement: Adapt to new Velbus color scheme.
 		
 ## Implemented Velbus modules:
 
@@ -82,11 +86,6 @@ Next modules can be controlled by simulating button presses.
   However, all button modules can be easily added just by filling in the decimal address nr manually.
   You can also edit the file `node_modules/node-red-contrib-velbus/velbus/const.js` to add your
   module or change its properties. See module help. Let me know your changes!
-
-
-##### To Do
-- Although the generic nodes can manage all Velbus commands and messages, I want to 
-  add som dedicated modules for dimmers, relays, Memo texts, ...
 
 
 ## Example scripts

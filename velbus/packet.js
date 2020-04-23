@@ -257,13 +257,13 @@ class Packet {
 		return realChannel;
 	}
 
-	static getPhysicalAddress(address, channel) {
+	static getPhysicalAddress(velbus, address, channel) {
 		//modules like VMBEL0 have more than one address, so we have to find the right one depending on the address
 		//there are only 8 channels per address
 		let realChannel = channel;
 		let realAddress = address;
 		let cnt = 0;
-		const moduleMetaData = global.velbus.modules.find(i => i.address === address);
+		const moduleMetaData = velbus.modules.find(i => i.address === address);
 		if (moduleMetaData) {
 			while (realChannel > 8) {
 				realChannel = realChannel - 8;

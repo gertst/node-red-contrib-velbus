@@ -55,7 +55,7 @@
 
 	RED.nodes.registerType('velbus-relay', {
 		category: 'Velbus',
-		color: '#e1444e',
+		color: '#f7a70b',
 		defaults: {
 			name: {value: "", required: false},
 			connector: {value: "", type: "velbus-connector"},
@@ -77,6 +77,11 @@
 
 		oneditprepare() {
 
+			const $connector = $("#node-input-connector");
+			//allready a Velbus connector available? -> select it
+			if ($connector.val() === "_ADD_") {
+				$connector.val($connector.find("option:first").val());
+			}
 
 			const commands = [
 				{
@@ -111,10 +116,11 @@
 			$(".red-ui-typedInput-input").width("96%");
 
 			$.get("velbus/get-relay-modules").then(modules => {
-
+				modules = JSON.parse(modules);
+				//console.log("mod:::::", modules);
 				let addressData;
 				if (modules.length > 0) {
-					modules = JSON.parse(modules);
+
 					addressData = modules.map(i => {
 						return {
 							value: i.address,
@@ -123,7 +129,7 @@
 						}
 					});
 				} else {
-					addressData = [];
+					addressData = [{value:1, hasValue: false, label: "ADD VELBUS AND DEPLOY FIRST ..."}];
 				}
 
 				addressData.splice(0, 0, {

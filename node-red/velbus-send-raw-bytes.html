@@ -75,7 +75,7 @@
 
 	RED.nodes.registerType('velbus-send-raw-bytes', {
 		category: 'Velbus',
-		color: '#e1444e',
+		color: '#f7a70b',
 		defaults: {
 			name: {value: "", required: false},
 			connector: {value: "", type: "velbus-connector"},
@@ -97,6 +97,12 @@
 		},
 
 		oneditprepare() {
+
+			const $connector = $("#node-input-connector");
+			//allready a Velbus connector available? -> select it
+			if ($connector.val() === "_ADD_") {
+				$connector.val($connector.find("option:first").val());
+			}
 
 			let commandInfoArray;
 
@@ -145,9 +151,9 @@
 
 
 			$.get("velbus/get-modules").then(modules => {
+				modules = JSON.parse(modules);
 
 				if (modules.length > 0) {
-					modules = JSON.parse(modules);
 					modules = modules.map(i => {
 						return {
 							value: i.address,
@@ -156,7 +162,7 @@
 						}
 					});
 				} else {
-					modules = [];
+					modules = [{value:0, hasValue: false, label: "ADD VELBUS AND DEPLOY FIRST ..."}];
 				}
 
 				modules.splice(0, 0, {

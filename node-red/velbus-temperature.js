@@ -1,6 +1,8 @@
 let constants = require('../velbus/const');
 let Packet = require('../velbus/packet');
 
+let connector;
+
 module.exports = function (RED) {
 	"use strict";
 
@@ -10,30 +12,26 @@ module.exports = function (RED) {
 		RED.nodes.createNode(this, config);
 
 		this.name = config.name;
-		this.connector = config.connector;
+		// Retrieve the config node
+		this.connector = RED.nodes.getNode(config.connector);
+		connector = this.connector;
 		this.address = config.addressType === "MANUAL" ? parseInt(config.address) : parseInt(config.addressType);
 		this.mode = parseInt(config.modeType);
 
-		// console.log("config", config);
-		// console.log("this", this);
-
-
-		this.status({fill: "green", shape: "ring", text: `Waiting ...`});
-
-		if (!global.velbus) {
-			this.status({fill: "orange", shape: "dot", text: `No Velbus connector node found: Add one first!`});
+		if (connector && connector.velbus) {
+			this.status({fill: "green", shape: "dot", text: `Velbus ready`});
+		} else {
+			this.status({fill: "red", shape: "dot", text: `No Velbus connector node found: Add one first!`});
 			return
 		}
-
-		global.velbus.on('onError', msg => {
+		connector.velbus.on('onError', msg => {
 			this.status({fill: "red", shape: "dot", text: msg});
 		});
-
-		global.velbus.on('onStatus', msg => {
+		connector.velbus.on('onStatus', msg => {
 			this.status({fill: "green", shape: "dot", text: msg});
 		});
 
-		global.velbus.on('onSerialPacket', packet => {
+		connector.velbus.on('onSerialPacket', packet => {
 
 			if (packet.address === this.address) {
 
@@ -85,10 +83,10 @@ module.exports = function (RED) {
 
 	RED.httpAdmin.get(`/velbus/get-temperature-modules`, function (req, res, next) {
 
-		if (global.velbus && global.velbus.modules) {
-			res.end(JSON.stringify(global.velbus.modules.filter(i => i.hasTemperatureSensor)));
+		if (connector && connector.velbus && connector.velbus.modules) {
+			res.end(JSON.stringify(connector.velbus.modules.filter(i => i.hasTemperatureSensor)));
 		} else {
-			res.end([]);
+			res.end("[]");
 		}
 
 	});
@@ -98,12 +96,10 @@ module.exports = function (RED) {
 };
 
 function sendRequest(that) {
-	// console.log("sendRequest", that.address);
-	if (that.address) {
+	if (connector && connector.velbus && connector.velbus.client && that.address) {
 		let packet = new Packet(that.address, constants.PRIO_LOW);
 		packet.setDataBytes([constants.commands.COMMAND_TEMPERATURE_SENSOR_TEMPERATURE_REQUEST, that.mode]);
 		packet.pack();
-		global.velbus.client.write(packet.getRawBuffer());
-		// console.log(packet.toString());
+		connector.velbus.client.write(packet.getRawBuffer());
 	}
 }
