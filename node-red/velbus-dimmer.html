@@ -117,13 +117,14 @@
 
 			$.get("velbus/get-dimmer-modules").then(modules => {
 				modules = JSON.parse(modules);
+				//console.log("modules", modules);
 				let addressData;
 				if (modules.length > 0) {
 					addressData = modules.map(i => {
 						return {
 							value: i.address,
 							hasValue: false,
-							label: `${i.name} (${numberToHexString(i.address)})`
+							label: `${i.moduleNameArray? i.moduleNameArray.join("") : i.name} (${numberToHexString(i.address)})`
 						}
 					});
 				} else {

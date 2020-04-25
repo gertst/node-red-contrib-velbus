@@ -1,5 +1,7 @@
+let Utils = require("../info/utils");
+
 let Packet = require('./packet');
-// let Protocol = require('../info/protocol');
+let Protocol = require('../info/protocol');
 let constants = require('./const');
 let EventEmitter = require('events');
 require('events').EventEmitter.defaultMaxListeners = 100;
@@ -14,7 +16,7 @@ class Velbus extends EventEmitter {
 		this.config = config;
 		this.connectionTries = 0;
 
-		// const protocol = new Protocol();
+		this.protocol = new Protocol();
 
 		this.init();
 
@@ -23,7 +25,7 @@ class Velbus extends EventEmitter {
 	destroy() {
 		clearTimeout(this.iid);
 		if (this.client) {
-			delete(this.client);
+			delete (this.client);
 			console.warn("Velbus client deleted");
 		}
 	}
@@ -59,9 +61,9 @@ class Velbus extends EventEmitter {
 
 			packet.setRawBytesAndPack(data);
 
-			console.info(`BUS: ${packet.toString()}`);
 			if (packet.rawPacket[0] === Packet.STX && packet.rawPacket.length >= 5) {
 
+				// console.info(`BUS: ${packet.toString()}`);
 
 				if (packet.command === constants.commands.COMMAND_MODULE_NAME_PART1) {
 					this.setPartName(0, packet);
@@ -70,14 +72,27 @@ class Velbus extends EventEmitter {
 				} else if (packet.command === constants.commands.COMMAND_MODULE_NAME_PART3) {
 					this.setPartName(2, packet);
 				} else if (packet.command === constants.commands.COMMAND_MODULE_TYPE && packet.rawPacket.length >= 10) {
-					let metaData = constants.moduleMetaData.find(i => i.type === packet.getDataByte(1));
+					const moduleType = packet.getDataByte(1);
+					let metaData = constants.moduleMetaData.find(i => i.type === moduleType);
 					if (metaData) {
 						//add module if not yet present
 						if (!this.modules.find(i => i.address === packet.address)) {
 							let module = {...metaData};
 							module.address = packet.address;
 							module.extraAddresses = [];
+							module.moduleType = moduleType;
 							this.modules.push(module);
+							//get module name
+							const nameAddress = this.getMemoryAddressesForModuleName(packet.address);
+							if (nameAddress) {
+								let getModuleNamePacket = new Packet(module.address);
+								getModuleNamePacket.priority = Packet.PRIORITY_LOW;
+								getModuleNamePacket.setDataBytes([constants.commands.COMMAND_READ_MEMORY_BLOCK,
+									nameAddress.highByte, nameAddress.lowByte]);
+								getModuleNamePacket.pack();
+								// console.log("--getModuleNamePacket1", module.name, getModuleNamePacket.toString());
+								this.client.write(getModuleNamePacket.getRawBuffer());
+							}
 						}
 					} else {
 						console.log("WARNING: Module of type " + packet.getDataByte(1) + " is unknown.");
@@ -108,6 +123,43 @@ class Velbus extends EventEmitter {
 						} else {
 							console.log("WARNING: Module with address " + packet.address + " was not (yet) scanned.");
 						}
+					}
+				} else if (packet.command === constants.commands.COMMAND_MEMORY_BLOCK) {
+					//get memory range to check for the module name
+					const startRange = this.getMemoryAddressesForModuleName(packet.address).decimalValue;
+					const endRange = startRange + 63; // max nr of bytes for name
+					const memoryAddress = parseInt("0x" + Utils.dec2hex(packet.getDataByte(1) ) + Utils.dec2hex(packet.getDataByte(2)));
+					//within name range?
+					if (memoryAddress >= startRange && memoryAddress <= endRange) {
+						const module = this.modules.find(i => i.address === packet.address);
+						if (!module.moduleNameArray) {
+							module.moduleNameArray = [];
+						}
+						let i = 3;
+						let endOfString = packet.getDataByte(i) === 255;
+						while (i <= 6 && !endOfString) {
+							let charPos = memoryAddress - startRange + i - 3;
+							module.moduleNameArray[charPos] = String.fromCharCode(packet.getDataByte(i));
+							i++;
+							endOfString = packet.getDataByte(i) === 255;
+						}
+						// console.log("****module.moduleName", module.name, module.moduleNameArray.join(""));
+						const nextAddress = memoryAddress + 4;
+						if (!endOfString && nextAddress <= endRange) {
+							//get next 4 chars
+							const nameAddress = {
+								lowByte: nextAddress & 0xFF,
+								highByte: (nextAddress >> 8) & 0xFF};
+							let getModuleNamePacket = new Packet(packet.address);
+							getModuleNamePacket.priority = Packet.PRIORITY_LOW;
+							getModuleNamePacket.setDataBytes([constants.commands.COMMAND_READ_MEMORY_BLOCK,
+								nameAddress.highByte, nameAddress.lowByte]);
+							getModuleNamePacket.pack();
+							this.client.write(getModuleNamePacket.getRawBuffer());
+						} else {
+							// console.log("we have the full name:", module.name, module.moduleNameArray.join(""))
+						}
+
 					}
 				}
 			}
@@ -206,9 +258,8 @@ class Velbus extends EventEmitter {
 			this.buttonNames[packet.address] = [];
 		}
 		if (!this.buttonNames[packet.address][channel]) {
-			this.buttonNames[packet.address][channel] = ["","",""];
+			this.buttonNames[packet.address][channel] = ["", "", ""];
 		}
-
 
 
 		this.buttonNames[packet.address][channel][index] = "";
@@ -235,6 +286,32 @@ class Velbus extends EventEmitter {
 			channel++;
 		}
 		return channel;
+	}
+
+	getMemoryAddressesForModuleName(address) {
+		const module = this.modules.find(i => i.address === address);
+		if (module) {
+			const moduleType = this.protocol.jsonData.ModuleTypes[Utils.dec2hex(module.moduleType)];
+			if (moduleType) {
+				const memory = moduleType.Memory;
+				if (memory) {
+					const memoryAddressForName = memory["1"].ModuleName.split(";")[0];
+					const highByte = parseInt("0x" + memoryAddressForName.substr(0, 2));
+					const lowByte = parseInt("0x" + memoryAddressForName.substr(2, 2));
+					const decimalValue = parseInt("0x" + Utils.dec2hex(highByte) + Utils.dec2hex(lowByte));
+					// console.log("address found for", moduleType.Type);
+					return {highByte, lowByte, decimalValue};
+				} else {
+					console.warn(`Module type 0x${Utils.dec2hex(module.moduleType)} has no key Memory in protocol.json ModuleTypes [${module.moduleType}] ...`)
+					return null
+				}
+			} else {
+				console.warn(`Module type 0x${Utils.dec2hex(module.moduleType)} not found in protocol.json ModuleTypes ...`)
+				return null
+			}
+		} else {
+			return null;
+		}
 	}
 }
 

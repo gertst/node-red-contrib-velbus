@@ -8,6 +8,15 @@ let Utils = {
 		// else it results to false bit is unset
 		//console.log("1/0:", new_num & 1);
 		return (new_num & 1) === 1;
+	},
+
+	dec2hex(d) {
+		if (isNaN(d)) {
+			return "NaN"
+		}
+		let s = d.toString(16).toUpperCase();
+		if (s.length === 1) s = "0" + s;
+		return s
 	}
 };
 

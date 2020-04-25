@@ -3,6 +3,7 @@
  */
 
 
+let Utils = require("../info/utils");
 let constants = require('./const');
 
 class Packet {
@@ -192,13 +193,13 @@ class Packet {
 	}
 
 	toString() {
-		return `adress: ${this.dec2hex(this.address)} - command: ${this.getCommandName}(${this.dec2hex(this.command)}) - data: ${this.getDataBytesAsString()} - priority: ${this.dec2hex(this.priority)} - rtr: ${this.rtr}`;
+		return `adress: ${Utils.dec2hex(this.address)} - command: ${this.getCommandName}(${Utils.dec2hex(this.command)}) - data: ${this.getDataBytesAsString()} - priority: ${Utils.dec2hex(this.priority)} - rtr: ${this.rtr}`;
 	}
 
 	getRawDataAsString() {
 		let s = "";
 		for (let i = 0; i < this.size; i++) {
-			s += this.dec2hex(this.rawPacket[i]) + " ";
+			s += Utils.dec2hex(this.rawPacket[i]) + " ";
 		}
 		return s;
 	}
@@ -222,7 +223,7 @@ class Packet {
 	getDataBytesAsString() {
 		let s = "";
 		for (let i = 0; i < Math.min(20, this.dataSize); i++) {
-			s += this.dec2hex(this.getDataByte(i)) + " ";
+			s += Utils.dec2hex(this.getDataByte(i)) + " ";
 		}
 		if (this.dataSize > 20) {
 			s += ` (${this.dataSize-20} more ...)`
@@ -232,15 +233,6 @@ class Packet {
 
 	getRawPacket() {
 		return this.rawPacket;
-	}
-
-	dec2hex(d) {
-		if (isNaN(d)) {
-			return "NaN"
-		}
-		let s = d.toString(16).toUpperCase();
-		if (s.length === 1) s = "0" + s;
-		return s
 	}
 
 	get getCommandName() {

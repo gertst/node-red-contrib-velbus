@@ -186,7 +186,7 @@ module.exports = function (RED) {
 				return {id: index, name: namePartsArray.join("")}
 			});
 		}
-		console.log("channelNames:", channelNames);
+		// console.log("channelNames:", channelNames);
 		res.end(JSON.stringify(channelNames));
 	});
 

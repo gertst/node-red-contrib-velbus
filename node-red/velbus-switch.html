@@ -211,12 +211,13 @@
 			// SET MODULES AS OPTIONS
 			modules.forEach(function (module) {
 				if (module.nrOfButtons > 0) {
+					let label = `${module.moduleNameArray ? module.moduleNameArray.join("") : module.name} (${numberToHexString(module.address)})`
 					$('#node-input-address').append(`
 					<option
 						value="${module.address}"
 						data-nr-of-channels="${module.nrOfButtons}"
 					>
-						${module.name} @ ${numberToHexString(module.address)}
+						${label}
 					</option>`);
 				}
 			});

@@ -125,7 +125,7 @@
 						return {
 							value: i.address,
 							hasValue: false,
-							label: `${i.name} (${numberToHexString(i.address)})`
+							label: `${i.moduleNameArray? i.moduleNameArray.join("") : i.name} (${numberToHexString(i.address)})`
 						}
 					});
 				} else {

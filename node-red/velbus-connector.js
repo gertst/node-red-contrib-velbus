@@ -12,28 +12,12 @@ module.exports = function (RED) {
 		this.port = config.port;
 		config.RED = RED;
 
-		this.initVelbus = (config) => {
-			if (!this.velbus) {
-				this.velbus = new Velbus(config);
-			}
+		if (!this.velbus) {
+			this.velbus = new Velbus(config);
 		}
-		this.initVelbus(config);
-
 
 	}
 
-
-
-	RED.httpAdmin.get(`/velbus/init/:ip/:port`, function (req, res, next) {
-
-		const config = {
-			ip: req.params.ip,
-			port: req.params.port,
-			RED
-		};
-		//initVelbus(config);
-
-	});
 
 	RED.nodes.registerType("velbus-connector", VelbusConnector);
 };
