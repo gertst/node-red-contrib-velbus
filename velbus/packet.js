@@ -236,7 +236,7 @@ class Packet {
 	}
 
 	get getCommandName() {
-		return constants.getCommandKeyByValue(this.command);
+		return constants.getCommandKeyByValue(this.command) || "(Unknown command)";
 	}
 
 	static getPhysicalChannel(channel) {

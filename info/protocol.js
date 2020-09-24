@@ -3,8 +3,9 @@ class Protocol {
 
 		const fs = require('fs');
 
-		let rawdata = fs.readFileSync('./info/protocol.json');
-		this.jsonData = JSON.parse(rawdata);
+		//let rawdata = fs.readFileSync(__dirname + 'info/protocol.json');
+		let rawdata = require('./protocol.json');
+		this.jsonData = rawdata;
 		//this.modules = Object.keys(this.jsonData.ModuleTypes);
 		//console.log("protocol modules", this.modules);
 	}

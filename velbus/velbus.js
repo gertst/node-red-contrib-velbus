@@ -126,40 +126,45 @@ class Velbus extends EventEmitter {
 					}
 				} else if (packet.command === constants.commands.COMMAND_MEMORY_BLOCK) {
 					//get memory range to check for the module name
-					const startRange = this.getMemoryAddressesForModuleName(packet.address).decimalValue;
-					const endRange = startRange + 63; // max nr of bytes for name
-					const memoryAddress = parseInt("0x" + Utils.dec2hex(packet.getDataByte(1) ) + Utils.dec2hex(packet.getDataByte(2)));
-					//within name range?
-					if (memoryAddress >= startRange && memoryAddress <= endRange) {
-						const module = this.modules.find(i => i.address === packet.address);
-						if (!module.moduleNameArray) {
-							module.moduleNameArray = [];
-						}
-						let i = 3;
-						let endOfString = packet.getDataByte(i) === 255;
-						while (i <= 6 && !endOfString) {
-							let charPos = memoryAddress - startRange + i - 3;
-							module.moduleNameArray[charPos] = String.fromCharCode(packet.getDataByte(i));
-							i++;
-							endOfString = packet.getDataByte(i) === 255;
-						}
-						// console.log("****module.moduleName", module.name, module.moduleNameArray.join(""));
-						const nextAddress = memoryAddress + 4;
-						if (!endOfString && nextAddress <= endRange) {
-							//get next 4 chars
-							const nameAddress = {
-								lowByte: nextAddress & 0xFF,
-								highByte: (nextAddress >> 8) & 0xFF};
-							let getModuleNamePacket = new Packet(packet.address);
-							getModuleNamePacket.priority = Packet.PRIORITY_LOW;
-							getModuleNamePacket.setDataBytes([constants.commands.COMMAND_READ_MEMORY_BLOCK,
-								nameAddress.highByte, nameAddress.lowByte]);
-							getModuleNamePacket.pack();
-							this.client.write(getModuleNamePacket.getRawBuffer());
-						} else {
-							// console.log("we have the full name:", module.name, module.moduleNameArray.join(""))
-						}
+					try {
+						const startRange = this.getMemoryAddressesForModuleName(packet.address).decimalValue;
+						const endRange = startRange + 63; // max nr of bytes for name
+						const memoryAddress = parseInt("0x" + Utils.dec2hex(packet.getDataByte(1)) + Utils.dec2hex(packet.getDataByte(2)));
+						//within name range?
+						if (memoryAddress >= startRange && memoryAddress <= endRange) {
+							const module = this.modules.find(i => i.address === packet.address);
+							if (!module.moduleNameArray) {
+								module.moduleNameArray = [];
+							}
+							let i = 3;
+							let endOfString = packet.getDataByte(i) === 255;
+							while (i <= 6 && !endOfString) {
+								let charPos = memoryAddress - startRange + i - 3;
+								module.moduleNameArray[charPos] = String.fromCharCode(packet.getDataByte(i));
+								i++;
+								endOfString = packet.getDataByte(i) === 255;
+							}
+							// console.log("****module.moduleName", module.name, module.moduleNameArray.join(""));
+							const nextAddress = memoryAddress + 4;
+							if (!endOfString && nextAddress <= endRange) {
+								//get next 4 chars
+								const nameAddress = {
+									lowByte: nextAddress & 0xFF,
+									highByte: (nextAddress >> 8) & 0xFF
+								};
+								let getModuleNamePacket = new Packet(packet.address);
+								getModuleNamePacket.priority = Packet.PRIORITY_LOW;
+								getModuleNamePacket.setDataBytes([constants.commands.COMMAND_READ_MEMORY_BLOCK,
+									nameAddress.highByte, nameAddress.lowByte]);
+								getModuleNamePacket.pack();
+								this.client.write(getModuleNamePacket.getRawBuffer());
+							} else {
+								// console.log("we have the full name:", module.name, module.moduleNameArray.join(""))
+							}
 
+						}
+					} catch (e) {
+						console.log("error COMMAND_MEMORY_BLOCK:", e)
 					}
 				}
 			}
