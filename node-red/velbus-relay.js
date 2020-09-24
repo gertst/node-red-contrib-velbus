@@ -53,20 +53,16 @@ module.exports = function (RED) {
 					}
 
 					if (channel === this.channel) {
-						this.isOn = Utils.bitAtGivenPosSetOrUnset(packet.getDataByte(3),channel);
-						const onOffString = this.isOn ? "on" : "off";
+						// need to know which relays this is as the protocol to determine which channel is on can be different
+						// console.log("module type:", packet.getDataByte(1));	// this will show which module
+						if (packet.getDataByte(1) === 8) {	// VMB4RY
+							this.isOn = Utils.bitAtGivenPosSetOrUnset(packet.getDataByte(3),channel);
+						} else {														// other relay modules (checked: VMB4RYLD, VMB4RYNO, VMB1RY*)
+							this.isOn = Utils.bitAtGivenPosSetOrUnset(packet.getDataByte(3),1);
+						}
 
-						this.status({
-							fill: "green",
-							shape: this.isOn ? "dot" : "ring",
-							text: `Switched ${onOffString} @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
-						});
-
-						this.send(
-								{
-									payload: this.isOn,
-									on: this.isOn
-								});
+						// update status
+						updateStatus(this);
 					}
 				}
 			}
@@ -108,6 +104,9 @@ module.exports = function (RED) {
 			} else {
 				this.status({fill: "red", shape: "ring", text: `No active Velbus: Did you deploy first?`});
 			}
+			// make sure module is in sync
+			this.isOn = switchOn;
+			updateStatus(this);
 		});
 
 
@@ -142,4 +141,25 @@ function requestStatus(that) {
 		}
 		// console.log(packet.toString());//
 	}
+}
+
+function updateStatus(that) {
+		const onOffString = that.isOn ? "on" : "off";
+
+		that.status({
+			fill: "green",
+			shape: that.isOn ? "dot" : "ring",
+			text: `Switched ${onOffString} @ ${new Date().toLocaleDateString()} - ${new Date().toLocaleTimeString()}`
+		});
+
+		//console.log("address:", that.address);
+		//console.log("channel:", that.channel);
+		//console.log("status:", that.isOn);
+
+		that.send(
+				{
+					payload: that.isOn,
+					on: that.isOn
+				});
+
 }
