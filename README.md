@@ -66,14 +66,17 @@ __If you are using this module, please let me know! Curious about your findings/
 - 2020/04/17
    - Added a Relay node to send and receive basic relay commands
    - Added a Dimmer node to send and receive basic dimmer commands
-- 2020/04/19
+- 2020/04/19 - v0.2.09
    - Bugfix: Some modules had a wrong nr of relays (thanks to MDAR)   
    - Bugfix: The first gen. glass pannels had no temp sensor (thanks to MDAR)   
    - Bugfix: The relay node had no icon in specific circumstances
    - Bugfix: Address was empty when data bytes were parsed from payload (thanks to jorampic)
    - Enhancement: More descriptive default names
-- 2020/04/xx
+- 2020/09/24 - v0.2.10
    - Enhancement: Adapt to new Velbus color scheme.
+   - Enhancement: Better detection of Velbus connection issues and auto-reconnect
+   - Added module VMB1RYS. Thanks MDAR!
+   - Bugfix: Thanks to @rrajagopal / @smoothquark to fix some relay issues. See https://github.com/gertst/node-red-contrib-velbus/pull/3
 		
 ## Implemented Velbus modules:
 
@@ -82,10 +85,11 @@ Next modules can be controlled by simulating button presses.
 - VMB4PB (tested)
 - VMB8PB (tested)
 - VMBELO (tested)
-- Other probably working but not tested. Let me know if your's not working.
+- Many other probably working but not tested. Let me know if yours is not working.
   However, all button modules can be easily added just by filling in the decimal address nr manually.
   You can also edit the file `node_modules/node-red-contrib-velbus/velbus/const.js` to add your
-  module or change its properties. See module help. Let me know your changes!
+  module or change its properties. See module help. 
+ 
 
 
 ## Example scripts
@@ -104,3 +108,5 @@ Next modules can be controlled by simulating button presses.
 ## Contact
 - For bugs/issues/requests: [Github](https://github.com/gertst/node-red-contrib-velbus/issues)
 - [My Twitter handle](https://twitter.com/GertStalpaert)
+
+I'm happy to merge your changes or accept pull requests!

@@ -45,6 +45,7 @@ let constants = {
 		{type: 0x36, name: "VMBEL4", nrOfButtons: 24, nrOfRelays: 0, nrOfDimmers: 0, hasTemperatureSensor: true, requestNameBinary: true},
 		{type: 0x37, name: "VMBELO", nrOfButtons: 24, nrOfRelays: 0, nrOfDimmers: 0, hasTemperatureSensor: true, requestNameBinary: true},
 		// {type: 0x39, name: "VMBSIG", nrOfButtons: 0, nrOfRelays: 0, nrOfDimmers: 0, hasTemperatureSensor: false, requestNameBinary: false}, //signum
+		{type: 0x41, name: "VMB1RYS", nrOfButtons: 0, nrOfRelays: 5, nrOfDimmers: 0, hasTemperatureSensor: false, requestNameBinary: false},
 		{type: 0x3A, name: "VMBGP1_2", nrOfButtons: 9, nrOfRelays: 0, nrOfDimmers: 0, hasTemperatureSensor: true, requestNameBinary: false},
 		{type: 0x3B, name: "VMBGP2_2", nrOfButtons: 9, nrOfRelays: 0, nrOfDimmers: 0, hasTemperatureSensor: true, requestNameBinary: false},
 		{type: 0x3C, name: "VMBGP4_2", nrOfButtons: 9, nrOfRelays: 0, nrOfDimmers: 0, hasTemperatureSensor: true, requestNameBinary: false},
