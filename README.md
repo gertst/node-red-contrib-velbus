@@ -1,5 +1,11 @@
 # node-red-contrib-velbus
 
+### EDIT 22 May 2020:
+
+**Pull requests with fixes are very welcome, as I probably will not work that frequently anymore on this module: I'm moving out of our "Velbus home" and will move to a "Loxone home" in the near future.**
+
+#
+
 This is a custom Node Red plugin to connect the Velleman 
 Velbus home automation system to Node Red. Node-red typically runs on a Raspberry Pi to manage home automation gear.
 It runs non stop and (almost) flawless on my PI since Jan 19, 2019.
