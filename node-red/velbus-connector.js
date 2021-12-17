@@ -16,6 +16,14 @@ module.exports = function (RED) {
 			this.velbus = new Velbus(config);
 		}
 
+		this.on("close", function () {
+			this.velbus.close();
+			this.velbus.destroy();
+			delete (this.velbus.config);
+            delete (this.velbus);
+			delete (this);
+        });
+
 	}
 
 

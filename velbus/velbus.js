@@ -222,8 +222,12 @@ class Velbus extends EventEmitter {
 	}
 
 	close() {
-		this.client.close();
-		this.emit("onError", "Velbus client closed");
+		try{
+			this.client.destroy();
+			this.emit("onError", "Velbus client closed");
+		} catch (e) {
+			console.log("ERROR while destroying client:", e);
+		}
 	}
 
 	requestButtonName(address, channel) {
