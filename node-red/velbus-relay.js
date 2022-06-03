@@ -38,8 +38,17 @@ module.exports = function (RED) {
 		connector.velbus.on('onSerialPacket', packet => {
 
 			if (packet.address === this.address) {
+				if (packet.command === constants.commands.COMMAND_MODULE_TYPE && packet.rawPacket.length >= 10) {
+					const module = this.connector.velbus.modules.find(i => i.address === this.address);
+					if (module) {
+						this.moduleName = module.name;
+						this.moduleType = module.moduleType;
+						requestStatus(this);	// now is a good time to request status
+					}
+				}
 
 				if (packet.command === constants.commands.COMMAND_RELAY_SWITCH_STATUS) {
+					// VMB4RYLD/NO, VMB4RY and VMB1RY* Protocols checked
 
 					let channel;
 					if (packet.getDataByte(1) === 1) {
@@ -50,16 +59,29 @@ module.exports = function (RED) {
 						channel = 3;
 					} else if (packet.getDataByte(1) === 8) {
 						channel = 4;
+					} else if (packet.getDataByte(1) === 16) {
+						channel = 5;
 					}
 
 					if (channel === this.channel) {
-						// need to know which relays this is as the protocol to determine which channel is on can be different
-						// console.log("module type:", packet.getDataByte(1));	// this will show which module
-						if (packet.getDataByte(1) === 8) {	// VMB4RY
-							this.isOn = Utils.bitAtGivenPosSetOrUnset(packet.getDataByte(3),channel);
-						} else {														// other relay modules (checked: VMB4RYLD, VMB4RYNO, VMB1RY*)
-							this.isOn = Utils.bitAtGivenPosSetOrUnset(packet.getDataByte(3),1);
-						}
+						// console.log("address:", this.address);					// address
+						// console.log("channel:", channel, "byte=", packet.getDataByte(1));	// channel and bytes
+						// console.log("name:", this.name);
+						// console.log("module name:", this.moduleName);
+						// console.log("module type:", this.moduleType);
+
+						// relay status is dependent on relay type
+						let channel_bit = (this.moduleName === "VMB4RY") ? channel : 1; 
+
+						this.isOn = Utils.bitAtGivenPosSetOrUnset(packet.getDataByte(3), channel_bit);
+						// console.log("status:", this.isOn, "byte=", packet.getDataByte(3));	// on/off status
+
+						// old code left in in case
+						//if (packet.getDataByte(1) === 8) {	// VMB4RY
+						//	this.isOn = Utils.bitAtGivenPosSetOrUnset(packet.getDataByte(3),channel);
+						//} else {				// other relay modules (checked: VMB4RYLD, VMB4RYNO, VMB1RY*)
+						//	this.isOn = Utils.bitAtGivenPosSetOrUnset(packet.getDataByte(3),1);
+						//}
 
 						// update status
 						updateStatus(this);
@@ -110,7 +132,7 @@ module.exports = function (RED) {
 		});
 
 
-		requestStatus(this);
+		// requestStatus(this); // this might be premature as we may not have identified the relay type yet
 
 
 	}
